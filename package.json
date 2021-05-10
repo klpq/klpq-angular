@@ -31,7 +31,7 @@
     "flv.js": "^1.5.0",
     "humanize": "^0.0.9",
     "humanize-duration": "^3.21.0",
-    "lodash": "^4.17.20",
+    "lodash": "^4.17.21",
     "ng-wormhole": "^3.0.2",
     "normalize.css": "^8.0.1",
     "rxjs": "~6.4.0",
