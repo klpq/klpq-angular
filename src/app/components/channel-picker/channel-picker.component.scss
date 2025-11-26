@@ -68,27 +68,27 @@
     }
   }
 
-.channel-link {
-  padding: 0px 5px;
-  text-decoration: none;
-  font-weight: bold;
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 0.35em;
-  align-items: center;
-  width: 100%;
-  max-width: 100%;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-
-  .channel-name {
-    min-width: 0;
+  .channel-link {
+    padding: 0px 5px;
+    text-decoration: none;
+    font-weight: bold;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 0.35em;
+    align-items: center;
+    width: 100%;
+    max-width: 100%;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+
+    .channel-name {
+      min-width: 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
   }
-}
 }
 .select {
   width: 100%;
