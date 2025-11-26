@@ -4120,7 +4120,7 @@ es-to-primitive@^1.2.0:
     is-date-object "^1.0.1"
     is-symbol "^1.0.2"
 
-es6-promise@^4.0.3, es6-promise@^4.2.8:
+es6-promise@^4.0.3, es6-promise@^4.2.5, es6-promise@^4.2.8:
   version "4.2.8"
   resolved "https://registry.yarnpkg.com/es6-promise/-/es6-promise-4.2.8.tgz#4eb21594c972bc40553d276e510539143db53e0a"
   integrity sha512-HJDGx5daxeIvxdBxvG2cb9g4tEvwIk3i8+nhX0yGrYmZUzbkdg8QbDevheDB8gd0//uPj4c1EQua8Q+MViT0/w==
@@ -4633,14 +4633,6 @@ flatted@^3.2.7, flatted@^3.2.9:
   version "3.3.1"
   resolved "https://registry.yarnpkg.com/flatted/-/flatted-3.3.1.tgz#21db470729a6734d4997002f439cb308987f567a"
   integrity sha512-X8cqMLLie7KsNUDSdzeN8FYK9rEt4Dt67OsG/DNGnYTSDBG4uFAJFBnUeiV+zCVAvwFy56IjM9sH51jVaEhNxw==
-
-flv.js@^1.5.0:
-  version "1.6.2"
-  resolved "https://registry.yarnpkg.com/flv.js/-/flv.js-1.6.2.tgz#fa3340fe3f7ee01d3977f7876aee66b8436e5922"
-  integrity sha512-xre4gUbX1MPtgQRKj2pxJENp/RnaHaxYvy3YToVVCrSmAWUu85b9mug6pTXF6zakUjNP2lFWZ1rkSX7gxhB/2A==
-  dependencies:
-    es6-promise "^4.2.8"
-    webworkify-webpack "^2.1.5"
 
 follow-redirects@^1.0.0:
   version "1.9.0"
@@ -6520,6 +6512,14 @@ mkdirp@^1.0.3, mkdirp@^1.0.4:
   version "1.0.4"
   resolved "https://registry.yarnpkg.com/mkdirp/-/mkdirp-1.0.4.tgz#3eb5ed62622756d79a5f0e2a221dfebad75c2f7e"
   integrity sha512-vVqVZQyf3WLx2Shd0qJ9xuvqgAyKPLAiqITEtqW0oIUjzo3PePDd6fW9iFz30ef7Ysp/oiWqbhszeGWW2T6Gzw==
+
+mpegts.js@^1.8.0:
+  version "1.8.0"
+  resolved "https://registry.yarnpkg.com/mpegts.js/-/mpegts.js-1.8.0.tgz#b944751df0e811be880c0d1e32dcd721f5ff9550"
+  integrity sha512-ZtujqtmTjWgcDDkoOnLvrOKUTO/MKgLHM432zGDI8oPaJ0S+ebPxg1nEpDpLw6I7KmV/GZgUIrfbWi3qqEircg==
+  dependencies:
+    es6-promise "^4.2.5"
+    webworkify-webpack xqq/webworkify-webpack
 
 mrmime@1.0.1:
   version "1.0.1"
@@ -9144,10 +9144,9 @@ websocket-extensions@>=0.1.1:
   resolved "https://registry.yarnpkg.com/websocket-extensions/-/websocket-extensions-0.1.3.tgz#5d2ff22977003ec687a4b87073dfbbac146ccf29"
   integrity sha512-nqHUnMXmBzT0w570r2JpJxfiSD1IzoI+HGVdd3aZ0yNi3ngvQ4jv1dtHt5VGxfI2yj5yqImPhOK4vmIh2xMbGg==
 
-webworkify-webpack@^2.1.5:
+webworkify-webpack@xqq/webworkify-webpack:
   version "2.1.5"
-  resolved "https://registry.yarnpkg.com/webworkify-webpack/-/webworkify-webpack-2.1.5.tgz#bf4336624c0626cbe85cf1ffde157f7aa90b1d1c"
-  integrity sha512-2akF8FIyUvbiBBdD+RoHpoTbHMQF2HwjcxfDvgztAX5YwbZNyrtfUMgvfgFVsgDhDPVTlkbb5vyasqDHfIDPQw==
+  resolved "https://codeload.github.com/xqq/webworkify-webpack/tar.gz/24d1e719b4a6cac37a518b2bb10fe124527ef4ef"
 
 whatwg-encoding@^1.0.5:
   version "1.0.5"

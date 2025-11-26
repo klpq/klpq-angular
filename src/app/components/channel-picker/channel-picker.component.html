@@ -39,13 +39,16 @@
     <div *ngIf="!isLoading" class="channel-list">
       <div class="channel-item online" *ngFor="let channel of qualityLive">
         <a routerLink="/{{ channel }}" class="channel-link"
-          >{{ channel }} <span class="live-status">LIVE</span>
+          ><span class="channel-name">{{ channel }}</span>
+          <span class="live-status">LIVE</span>
         </a>
       </div>
     </div>
     <div *ngIf="!isLoading" class="channel-list">
       <div class="channel-item offline" *ngFor="let channel of qualityOffline">
-        <a routerLink="/{{ channel }}" class="channel-link">{{ channel }}</a>
+        <a routerLink="/{{ channel }}" class="channel-link"
+          ><span class="channel-name">{{ channel }}</span></a
+        >
       </div>
     </div>
   </div>
@@ -64,13 +67,16 @@
     <div *ngIf="!isLoading" class="channel-list">
       <div class="channel-item online" *ngFor="let channel of online">
         <a routerLink="/{{ channel }}" class="channel-link"
-          >{{ channel }} <span class="live-status">LIVE</span>
+          ><span class="channel-name">{{ channel }}</span>
+          <span class="live-status">LIVE</span>
         </a>
       </div>
     </div>
     <div *ngIf="!isLoading" class="channel-list">
       <div class="channel-item offline" *ngFor="let channel of offline">
-        <a routerLink="/{{ channel }}" class="channel-link">{{ channel }}</a>
+        <a routerLink="/{{ channel }}" class="channel-link"
+          ><span class="channel-name">{{ channel }}</span></a
+        >
       </div>
     </div>
   </div>

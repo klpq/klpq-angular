@@ -10,44 +10,63 @@
 .navigation {
   display: grid;
   grid: 1fr / 1fr 2fr 1fr;
+  grid-template-areas: 'back title switch';
   gap: 2em;
   background-color: #18181b;
   padding: 0.5em;
   align-items: center;
   .back-link {
+    grid-area: back;
     padding-left: 0.25em;
+    justify-self: start;
   }
   .back-img {
     height: 32px;
     cursor: pointer;
   }
   .channel-name {
+    grid-area: title;
     text-align: center;
     text-transform: uppercase;
   }
 
   .channel-switch-wrap {
+    grid-area: switch;
     display: flex;
     justify-content: end;
   }
 }
 
 .main-area {
-  margin-top: 0.5em;
+  margin-top: 0;
   gap: 1em;
   flex-grow: 1;
   display: flex;
   height: calc(100% - 100px);
   align-items: stretch;
+  padding: 1%;
+  box-sizing: border-box;
+  background: #18181b;
 
   .player-section {
-    background-color: black;
+    background-color: #18181b;
     width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
     &.full {
       flex-grow: 1;
     }
     #player {
       width: 100%;
+      max-width: 1200px;
+      height: auto;
+      aspect-ratio: 16 / 9;
+      border-radius: 8px;
+      background: #000;
+      object-fit: contain;
+      display: block;
+      background-color: #000;
     }
   }
 
@@ -59,7 +78,7 @@
 
 .footer {
   background-color: #18181b;
-  margin-top: 0.5em;
+  margin-top: 0;
   .stats {
     display: flex;
     gap: 1em;
@@ -78,4 +97,31 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+}
+
+@media (max-width: 768px) {
+  .navigation {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75em 1.25em;
+  }
+
+  .navigation .channel-name {
+    order: 1;
+    flex: 1 1 auto;
+    text-align: center;
+    font-size: 1rem;
+  }
+
+  .navigation .channel-switch-wrap {
+    order: 2;
+    justify-content: center;
+    gap: 0.75em;
+    width: 100%;
+  }
+
+  .navigation .back-link {
+    order: 0;
+  }
 }

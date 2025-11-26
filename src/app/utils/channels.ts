@@ -1,7 +1,7 @@
-import flv from 'flv.js';
 import * as dashjs from 'dashjs';
 import Hls from 'hls.js';
 import axios from 'axios';
+import Mpegts from 'mpegts.js';
 
 import environment from '../../environments/environment';
 
@@ -125,7 +125,7 @@ export async function createPlayer(
 function createWssPlayer(videoElement: HTMLMediaElement, url: string) {
   console.log('createWssPlayer', url);
 
-  const player = flv.createPlayer({
+  const player = Mpegts.createPlayer({
     type: 'flv',
     url,
     cors: true,
@@ -140,6 +140,7 @@ function createWssPlayer(videoElement: HTMLMediaElement, url: string) {
 
     player.pause();
     player.unload();
+    player.detachMediaElement();
   };
 }
 

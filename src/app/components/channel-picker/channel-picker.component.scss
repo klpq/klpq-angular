@@ -36,10 +36,9 @@
 }
 
 .channel-item {
-  height: 30px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  padding: 0.35em 0;
 
   &:hover {
     background-color: #dddddd;
@@ -53,11 +52,11 @@
     padding: 2px 5px;
     font-size: 12px;
     border-radius: 5px;
+    white-space: nowrap;
+    flex-shrink: 0;
   }
 
   &.offline {
-    height: 15px;
-    padding: 0.25em 0em;
     .channel-link {
       color: #4d4d4d;
     }
@@ -69,17 +68,27 @@
     }
   }
 
-  .channel-link {
-    padding: 0px 5px;
-    text-decoration: none;
-    font-weight: bold;
-    width: 100%;
-    display: flex;
-    justify-content: space-between;
-    height: 100%;
-    width: 100%;
-    align-items: center;
+.channel-link {
+  padding: 0px 5px;
+  text-decoration: none;
+  font-weight: bold;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.35em;
+  align-items: center;
+  width: 100%;
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  .channel-name {
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
+}
 }
 .select {
   width: 100%;
@@ -87,8 +96,8 @@
 
 .content {
   position: relative;
-  width: 75%;
-  margin: 0em 0.5em;
+  width: 100%;
+  margin: 0.25em 0;
 }
 
 .dropdown {
@@ -102,12 +111,28 @@
   display: none;
   position: absolute;
   background-color: #f9f9f9;
-  width: 90%;
+  min-width: 100%;
+  width: max-content;
+  max-width: calc(100vw - 1.25rem);
   padding: 0.25em;
   box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
   z-index: 1;
+  box-sizing: border-box;
+  overflow-x: hidden;
 }
 
 .dropdown-content.isOpen {
   display: block;
+}
+
+@media (min-width: 768px) {
+  .content {
+    width: 75%;
+    margin: 0 0.5em;
+  }
+
+  .dropdown-content {
+    min-width: 90%;
+    max-width: min(90vw, 520px);
+  }
 }
