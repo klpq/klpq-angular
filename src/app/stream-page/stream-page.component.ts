@@ -116,6 +116,8 @@ export class StreamPageComponent implements OnInit, OnDestroy {
 
     if (this.stopFnc) {
       this.stopFnc();
+
+      this.stopFnc = null;
     }
   }
 
@@ -147,11 +149,13 @@ export class StreamPageComponent implements OnInit, OnDestroy {
   }
 
   async initPlayer() {
+    console.log('initPlayer', !!this.stopFnc);
+
     if (this.stopFnc) {
       this.stopFnc();
-    }
 
-    console.log('initPlayer');
+      this.stopFnc = null;
+    }
 
     if (this.playerInit) {
       return;
@@ -166,9 +170,9 @@ export class StreamPageComponent implements OnInit, OnDestroy {
     videoPlayer.setAttribute('id', 'player');
     videoPlayer.setAttribute('controls', 'true');
 
-    (playerSelector as any).replaceChildren(videoPlayer);
+    playerSelector.replaceChildren(videoPlayer);
 
-    console.log('loading player', this.app, this.stream, this.protocol);
+    console.log('player loading...', this.app, this.stream, this.protocol);
 
     this.stopFnc = await createPlayer(
       this.app.split('_')[0],
@@ -176,5 +180,7 @@ export class StreamPageComponent implements OnInit, OnDestroy {
       this.protocol as string,
       videoPlayer,
     );
+
+    console.log('player created');
   }
 }

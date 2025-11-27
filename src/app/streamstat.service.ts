@@ -41,6 +41,13 @@ export enum ProtocolsEnum {
   HLS = 'hls',
 }
 
+const QUALITY_LABELS: Record<string, string> = {
+  live: 'source-flv',
+  encode: 'encode-flv',
+  live_mpd: 'source-mpd',
+  live_hls: 'source-hls',
+};
+
 interface Stats {
   duration: number;
   viewers: number;
@@ -57,6 +64,11 @@ interface IListResponse {
   }[];
 }
 
+export interface QualityEntry {
+  label: string;
+  path: string;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -68,8 +80,8 @@ export class StreamstatService {
   channels: {
     online: string[];
     offline: string[];
-    qualityLive: string[];
-    qualityOffline: string[];
+    qualityLive: QualityEntry[];
+    qualityOffline: QualityEntry[];
   } = {
     online: [],
     offline: [],
@@ -139,16 +151,14 @@ export class StreamstatService {
     const liveChannels: string[] = [];
     const offlineChannels: string[] = [];
 
-    const qualityLive: string[] = [];
-    const qualityOffline: string[] = [];
+    const qualityLive: QualityEntry[] = [];
+    const qualityOffline: QualityEntry[] = [];
 
     for (const channelName of this.openedChannels) {
       try {
         const {
           data: { isLive },
-        } = await axios.get<Stats>(
-          url(channelName, 'live', this.currentServer),
-        );
+        } = await axios.get<Stats>(url(channelName, 'live', STATS_SERVER));
 
         if (isLive) {
           liveChannels.push(channelName);
@@ -166,16 +176,16 @@ export class StreamstatService {
         app: 'live',
       },
       {
-        server: STATS_SERVER,
-        app: 'encode',
-      },
-      {
         server: MPD_STATS_SERVER,
         app: 'live_mpd',
       },
       {
         server: MPD_STATS_SERVER,
         app: 'live_hls',
+      },
+      {
+        server: STATS_SERVER,
+        app: 'encode',
       },
     ]) {
       try {
@@ -185,13 +195,22 @@ export class StreamstatService {
           url(this.currentChannel, qualityName.app, qualityName.server),
         );
 
+        const label = QUALITY_LABELS[qualityName.app] ?? qualityName.app;
+        const qualityEntry = {
+          label,
+          path: `${qualityName.app}/${this.currentChannel}`,
+        };
+
         if (isLive) {
-          qualityLive.push(`${qualityName.app}/${this.currentChannel}`);
+          qualityLive.push(qualityEntry);
         } else {
-          qualityOffline.push(`${qualityName.app}/${this.currentChannel}`);
+          qualityOffline.push(qualityEntry);
         }
       } catch (error) {
-        qualityOffline.push(`${qualityName.app}/${this.currentChannel}`);
+        qualityOffline.push({
+          label: QUALITY_LABELS[qualityName.app] ?? qualityName.app,
+          path: `${qualityName.app}/${this.currentChannel}`,
+        });
       }
     }
 

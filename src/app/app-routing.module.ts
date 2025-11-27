@@ -22,14 +22,6 @@ const routesWww: Routes = [
     ],
   },
   {
-    path: 'minimal/:stream',
-    component: MinimalComponent,
-  },
-  {
-    path: 'minimal',
-    component: MinimalComponent,
-  },
-  {
     path: '**',
     redirectTo: '/',
     pathMatch: 'full',

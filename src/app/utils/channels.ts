@@ -133,7 +133,10 @@ function createWssPlayer(videoElement: HTMLMediaElement, url: string) {
   });
   player.attachMediaElement(videoElement);
   player.load();
-  player.play();
+
+  Promise.resolve(player.play())
+    .then(() => console.log('playing...'))
+    .catch(console.error);
 
   return () => {
     console.log('stop wss player');
@@ -164,13 +167,17 @@ function createHlsPlayer(videoElement: HTMLMediaElement, url: string) {
 
   const player = new Hls();
 
+  player.on(Hls.Events.MEDIA_ATTACHED, () => {
+    videoElement.muted = false;
+  });
+
   player.loadSource(url);
   player.attachMedia(videoElement);
 
-  player.on(Hls.Events.MEDIA_ATTACHED, () => {
-    videoElement.muted = false;
-    videoElement.play();
-  });
+  videoElement
+    .play()
+    .then(() => console.log('playing...'))
+    .catch(console.error);
 
   return () => {
     console.log('stop hls player');
@@ -184,7 +191,11 @@ function createNativePlayer(videoElement: HTMLMediaElement, url: string) {
   console.log('createNativePlayer', url);
 
   videoElement.src = url;
-  videoElement.play();
+
+  videoElement
+    .play()
+    .then(() => console.log('playing...'))
+    .catch(console.error);
 
   return () => {
     console.log('stop native player');

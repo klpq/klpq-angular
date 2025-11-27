@@ -5,7 +5,7 @@ import {
   Renderer2,
   ViewChild,
 } from '@angular/core';
-import { StreamstatService } from '../../streamstat.service';
+import { QualityEntry, StreamstatService } from '../../streamstat.service';
 
 @Component({
   selector: 'app-channel-picker',
@@ -16,8 +16,8 @@ export class ChannelPickerComponent implements OnInit {
   online: string[];
   offline: string[];
 
-  qualityLive: string[];
-  qualityOffline: string[];
+  qualityLive: QualityEntry[];
+  qualityOffline: QualityEntry[];
 
   isLoading = true;
 
