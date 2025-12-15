@@ -1,11 +1,6 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { ActivatedRoute, Params, Router } from '@angular/router';
-import {
-  MPD_STATS_SERVER,
-  ProtocolsEnum,
-  STATS_SERVER,
-  StreamstatService,
-} from '../streamstat.service';
+import { ProtocolsEnum, StreamStatService, Stats } from '../streamstat.service';
 import { createPlayer } from '../utils/channels';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import * as _ from 'lodash';
@@ -19,84 +14,94 @@ import { Subscription } from 'rxjs';
   styleUrls: ['./stream-page.component.scss'],
 })
 export class StreamPageComponent implements OnInit, OnDestroy {
-  app = 'live';
   stream = 'main';
-  protocol: ProtocolsEnum | string | null = null;
-  server: string | null = null;
+  app: string;
+  server: string;
+  protocol: ProtocolsEnum;
+
   showChat = false;
 
-  stats = {
-    isLive: false,
-    viewers: 0,
-    bitrate: 0,
-    lastBitrate: 0,
-    duration: 0,
-    startTime: 0,
-  };
+  stats: Stats['streams'][0];
 
   playerInit = false;
   chatUrl: SafeResourceUrl;
   loginUrl: SafeResourceUrl;
+
   stopFnc: (() => void) | null = null;
 
   paramsSubscription = null;
   subscription: Subscription | null = null;
 
+  gotFirstStats = false;
+
   constructor(
     private router: Router,
     private route: ActivatedRoute,
-    private streamStats: StreamstatService,
+    private streamStats: StreamStatService,
     private sanitizer: DomSanitizer,
   ) {}
 
   ngOnInit() {
     this.route.params.subscribe((params) => {
-      this.app = params.app || 'live';
+      console.log(params);
+
       this.stream = params.stream || 'main';
+      this.app = params.app;
+      this.protocol = null;
+      this.server = null;
 
       this.showChat = localStorage.getItem('showChat') === 'true';
 
-      const [, protocol] = (params.app || '').split('_');
-
-      switch (protocol) {
-        case 'mpd': {
-          this.protocol = ProtocolsEnum.MPD;
-          this.server = MPD_STATS_SERVER;
-
-          break;
-        }
-        case 'hls': {
-          this.protocol = ProtocolsEnum.HLS;
-          this.server = MPD_STATS_SERVER;
-
-          break;
-        }
-        case 'wss': {
-          this.protocol = ProtocolsEnum.WSS;
-          this.server = STATS_SERVER;
-
-          break;
-        }
-        default: {
-          this.protocol = null;
-          this.server = STATS_SERVER;
-
-          break;
-        }
-      }
-
-      this.streamStats.setChannel(this.stream, this.app, this.server);
+      this.streamStats.setChannel(this.stream);
 
       this.playerInit = false;
+
+      this.gotFirstStats = false;
 
       this.initPlayer();
       this.getChatUrl();
       this.getLoginUrl();
     });
 
-    this.subscription = this.streamStats.statsSubject.subscribe((stats) => {
-      this.stats = stats as any;
-    });
+    this.subscription = this.streamStats.statsSubject.subscribe(
+      ({ streams }) => {
+        console.log('gotFirstStats', this.stream, this.gotFirstStats, streams);
+
+        console.log(this.stream, this.app, this.protocol, this.server);
+
+        if (streams.length === 0) {
+          return;
+        }
+
+        if (this.gotFirstStats) {
+          return;
+        }
+
+        if (this.app && this.protocol && this.server) {
+          const stream = _.find(streams, {
+            app: this.app,
+            server: this.server,
+            protocol: this.protocol,
+          });
+
+          this.stats = stream;
+        } else {
+          const stream = streams[0];
+
+          this.app = stream?.app;
+
+          this.server = stream?.server;
+
+          this.protocol = stream?.protocol;
+
+          this.stats = stream;
+        }
+
+        this.gotFirstStats = true;
+
+        this.initPlayer();
+      },
+    );
 
     this.route.queryParams.subscribe((query) => {
       console.log('query', query);
@@ -149,7 +154,13 @@ export class StreamPageComponent implements OnInit, OnDestroy {
   }
 
   async initPlayer() {
-    console.log('initPlayer', !!this.stopFnc);
+    console.log(
+      'initPlayer',
+      !!this.stopFnc,
+      this.app,
+      this.protocol,
+      this.server,
+    );
 
     if (this.stopFnc) {
       this.stopFnc();
@@ -161,26 +172,30 @@ export class StreamPageComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.playerInit = true;
+    if (this.app && this.protocol && this.server) {
+      this.playerInit = true;
 
-    const playerSelector = document.getElementsByClassName('player-section')[0];
+      const playerSelector =
+        document.getElementsByClassName('player-section')[0];
 
-    const videoPlayer = document.createElement('video');
+      const videoPlayer = document.createElement('video');
 
-    videoPlayer.setAttribute('id', 'player');
-    videoPlayer.setAttribute('controls', 'true');
+      videoPlayer.setAttribute('id', 'player');
+      videoPlayer.setAttribute('controls', 'true');
 
-    playerSelector.replaceChildren(videoPlayer);
+      playerSelector.replaceChildren(videoPlayer);
 
-    console.log('player loading...', this.app, this.stream, this.protocol);
+      console.log('player loading...', this.app, this.stream, this.protocol);
 
-    this.stopFnc = await createPlayer(
-      this.app.split('_')[0],
-      this.stream,
-      this.protocol as string,
-      videoPlayer,
-    );
+      this.stopFnc = await createPlayer(
+        this.server,
+        this.app,
+        this.stream,
+        this.protocol as ProtocolsEnum,
+        videoPlayer,
+      );
 
-    console.log('player created');
+      console.log('player created');
+    }
   }
 }

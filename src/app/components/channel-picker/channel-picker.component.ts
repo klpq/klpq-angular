@@ -5,7 +5,7 @@ import {
   Renderer2,
   ViewChild,
 } from '@angular/core';
-import { QualityEntry, StreamstatService } from '../../streamstat.service';
+import { QualityEntry, StreamStatService } from '../../streamstat.service';
 
 @Component({
   selector: 'app-channel-picker',
@@ -30,7 +30,7 @@ export class ChannelPickerComponent implements OnInit {
   isMenuOpen = false;
   isMenuOpenQuality = false;
 
-  constructor(private stats: StreamstatService, private renderer: Renderer2) {
+  constructor(private stats: StreamStatService, private renderer: Renderer2) {
     this.renderer.listen('window', 'click', (e: Event) => {
       /**
        * Only run when toggleButton is not clicked

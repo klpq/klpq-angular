@@ -8,11 +8,7 @@ import environment from 'src/environments/environment';
 import * as _ from 'lodash';
 import axios from 'axios';
 
-export const STATS_SERVER = new URL(environment.WSS_URL).hostname;
-export const MPD_STATS_SERVER = new URL(environment.MPD_URL).hostname;
-
-const url = (name, app, host) =>
-  `${environment.STATS_URL}/channels/${host}/${app}/${name}`;
+const url = (name: string) => `${environment.STATS_URL}/channels/${name}`;
 
 const fixTime = (duration: number) =>
   humanizeDuration(duration * 1000, {
@@ -36,24 +32,22 @@ const fixTime = (duration: number) =>
   });
 
 export enum ProtocolsEnum {
-  WSS = 'wss',
+  WSS = 'rtmp',
   MPD = 'mpd',
   HLS = 'hls',
 }
 
-const QUALITY_LABELS: Record<string, string> = {
-  live: 'source-flv',
-  encode: 'encode-flv',
-  live_mpd: 'source-mpd',
-  live_hls: 'source-hls',
-};
-
-interface Stats {
-  duration: number;
-  viewers: number;
-  isLive: boolean;
-  startTime: string;
-  name: string;
+export interface Stats {
+  streams: {
+    app: string;
+    duration: number;
+    viewers: number;
+    isLive: boolean;
+    startTime: string;
+    server: string;
+    protocol: ProtocolsEnum;
+    bitrate: number;
+  }[];
 }
 
 interface IListResponse {
@@ -72,8 +66,10 @@ export interface QualityEntry {
 @Injectable({
   providedIn: 'root',
 })
-export class StreamstatService {
-  stats = {};
+export class StreamStatService {
+  stats: Stats = {
+    streams: [],
+  };
 
   openedChannels: string[] = [];
 
@@ -88,9 +84,9 @@ export class StreamstatService {
     qualityLive: [],
     qualityOffline: [],
   };
-  currentChannel = '';
-  currentApp = '';
-  currentServer = '';
+  currentChannel;
+  currentApp;
+  currentServer;
 
   statsSubject = new BehaviorSubject(this.stats);
   onlineChannels = new BehaviorSubject(this.channels);
@@ -111,20 +107,14 @@ export class StreamstatService {
 
   initService() {
     this.intervalSource = interval(30000).subscribe(() => {
-      this.fetchStats(this.currentChannel, this.currentApp, this.currentServer);
+      this.fetchStats(this.currentChannel);
 
       this.fetchChannels();
     });
   }
 
-  setChannel(channel: string, app: string, server: string) {
-    this.stats = {};
-
+  setChannel(channel: string) {
     this.currentChannel = channel;
-    this.currentApp = app;
-    this.currentServer = server;
-
-    console.log('currentChannel', this.currentChannel);
 
     if (this.currentChannel) {
       this.openedChannels.push(this.currentChannel);
@@ -143,7 +133,7 @@ export class StreamstatService {
       localStorage.setItem('channels', JSON.stringify(this.openedChannels));
     }
 
-    this.fetchStats(this.currentChannel, this.currentApp, this.currentServer);
+    this.fetchStats(this.currentChannel);
     this.fetchChannels();
   }
 
@@ -157,10 +147,12 @@ export class StreamstatService {
     for (const channelName of this.openedChannels) {
       try {
         const {
-          data: { isLive },
-        } = await axios.get<Stats>(url(channelName, 'live', STATS_SERVER));
+          data: {
+            streams: [stream],
+          },
+        } = await axios.get<Stats>(url(channelName));
 
-        if (isLive) {
+        if (stream?.isLive) {
           liveChannels.push(channelName);
         } else {
           offlineChannels.push(channelName);
@@ -170,47 +162,21 @@ export class StreamstatService {
       }
     }
 
-    for (const qualityName of [
-      {
-        server: STATS_SERVER,
-        app: 'live',
-      },
-      {
-        server: MPD_STATS_SERVER,
-        app: 'live_mpd',
-      },
-      {
-        server: MPD_STATS_SERVER,
-        app: 'live_hls',
-      },
-      {
-        server: STATS_SERVER,
-        app: 'encode',
-      },
-    ]) {
-      try {
-        const {
-          data: { isLive },
-        } = await axios.get<Stats>(
-          url(this.currentChannel, qualityName.app, qualityName.server),
-        );
+    const {
+      data: { streams },
+    } = await axios.get<Stats>(url(this.currentChannel));
 
-        const label = QUALITY_LABELS[qualityName.app] ?? qualityName.app;
-        const qualityEntry = {
-          label,
-          path: `${qualityName.app}/${this.currentChannel}`,
-        };
+    for (const stream of streams) {
+      const label = stream.app;
+      const qualityEntry = {
+        label,
+        path: `${this.currentChannel}/${stream.app}`,
+      };
 
-        if (isLive) {
-          qualityLive.push(qualityEntry);
-        } else {
-          qualityOffline.push(qualityEntry);
-        }
-      } catch (error) {
-        qualityOffline.push({
-          label: QUALITY_LABELS[qualityName.app] ?? qualityName.app,
-          path: `${qualityName.app}/${this.currentChannel}`,
-        });
+      if (stream?.isLive) {
+        qualityLive.push(qualityEntry);
+      } else {
+        qualityOffline.push(qualityEntry);
       }
     }
 
@@ -223,26 +189,16 @@ export class StreamstatService {
     this.onlineChannels.next(this.channels);
   }
 
-  fetchStats(channel: string, app: string, server: string) {
-    if (!channel || !app || !server) {
-      this.stats = {};
-
-      return;
-    }
+  fetchStats(channel: string) {
+    console.log('fetchStats', channel);
 
     const source = this.http
-      .get(url(channel, app, server), {
+      .get(url(channel), {
         headers: {
-          'jwt-token': window.localStorage.getItem('token') ?? '',
+          'jwt-token': window.localStorage.getItem('token') || '',
         },
       })
-      .pipe(
-        map((resp) => ({
-          ...resp,
-          name: channel,
-          duration: fixTime((resp as Stats).duration),
-        })),
-      );
+      .pipe(map((data: Stats) => data));
 
     source.subscribe((data) => {
       this.stats = data;

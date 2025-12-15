@@ -1,12 +1,12 @@
 import { TestBed } from '@angular/core/testing';
 
-import { StreamstatService } from './streamstat.service';
+import { StreamStatService } from './streamstat.service';
 
-describe('StreamstatService', () => {
+describe('StreamStatService', () => {
   beforeEach(() => TestBed.configureTestingModule({}));
 
   it('should be created', () => {
-    const service: StreamstatService = TestBed.get(StreamstatService);
+    const service: StreamStatService = TestBed.get(StreamStatService);
     expect(service).toBeTruthy();
   });
 });

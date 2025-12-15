@@ -9,8 +9,6 @@ const environment = {
   CHAT_URL: config.CHAT_URL,
   STATS_URL: config.STATS_URL,
   STATS_SERVER: config.STATS_SERVER,
-  WSS_URL: config.WSS_URL,
-  MPD_URL: config.MPD_URL,
   CURRENT_PAGE: config.CURRENT_PAGE,
   STREAM_PAGE_REDIRECT_URL: config.STREAM_PAGE_REDIRECT_URL,
   MAIN_PAGE_URL: config.MAIN_PAGE_URL,

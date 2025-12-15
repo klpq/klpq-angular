@@ -3,34 +3,32 @@ import Hls from 'hls.js';
 import axios from 'axios';
 import Mpegts from 'mpegts.js';
 
-import environment from '../../environments/environment';
+import { ProtocolsEnum } from '../streamstat.service';
 
-export const getLink = (name, app) => {
-  return `${environment.WSS_URL}/${app}/${name}.flv`;
+export const getLink = (server, name, app) => {
+  return `https://${server}/${app}/${name}.flv`;
 };
 
-export const getMpdLink = async (name, app) => {
+export const getMpdLink = async (server, name, app) => {
   console.log('get mpd link', name, app);
 
   const {
     data: { id },
-  } = await axios.get<{ id: string }>(
-    `${environment.MPD_URL}/generate/mpd/${app}_${name}`,
-  );
+  } = await axios.get<{ id: string }>(`${server}/generate/mpd/${app}_${name}`);
 
-  return `${environment.MPD_URL}/watch/${id}/index.mpd`;
+  return `https://${server}/watch/${id}/index.mpd`;
 };
 
-export const getHlsLink = async (name, app) => {
+export const getHlsLink = async (server, name, app) => {
   console.log('get hls link', name, app);
 
   const {
     data: { id },
   } = await axios.get<{ id: string }>(
-    `${environment.MPD_URL}/generate/hls/${app}_${name}`,
+    `https://${server}/generate/hls/${app}_${name}`,
   );
 
-  return `${environment.MPD_URL}/watch/${id}/index.m3u8`;
+  return `${server}/watch/${id}/index.m3u8`;
 };
 
 function isIOS() {
@@ -53,23 +51,24 @@ function isAndroid() {
 }
 
 export async function createPlayer(
+  server: string,
   app: string,
   stream: string,
-  protocol: string,
+  protocol: ProtocolsEnum,
   videoElement: HTMLMediaElement,
 ): Promise<() => void> {
   let stopPlaybackFnc = () => null;
 
   switch (protocol) {
-    case 'wss': {
-      const url = getLink(stream, app);
+    case 'rtmp': {
+      const url = getLink(server, stream, app);
 
       stopPlaybackFnc = createWssPlayer(videoElement, url);
 
       break;
     }
     case 'mpd': {
-      const url = await getMpdLink(stream, app);
+      const url = await getMpdLink(server, stream, app);
 
       if (isAndroid()) {
         stopPlaybackFnc = createNativePlayer(videoElement, url);
@@ -82,7 +81,7 @@ export async function createPlayer(
       break;
     }
     case 'hls': {
-      const url = await getHlsLink(stream, app);
+      const url = await getHlsLink(server, stream, app);
 
       if (isIOS()) {
         stopPlaybackFnc = createNativePlayer(videoElement, url);
@@ -96,7 +95,7 @@ export async function createPlayer(
     }
     default: {
       if (isIOS()) {
-        const url = await getHlsLink(stream, app);
+        const url = await getHlsLink(server, stream, app);
 
         stopPlaybackFnc = createNativePlayer(videoElement, url);
 
@@ -111,7 +110,7 @@ export async function createPlayer(
       //   break;
       // }
 
-      const url = getLink(stream, app);
+      const url = getLink(server, stream, app);
 
       stopPlaybackFnc = createWssPlayer(videoElement, url);
 
