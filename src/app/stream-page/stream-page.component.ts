@@ -42,15 +42,17 @@ export class StreamPageComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit() {
+    console.log('ngOnInit');
+
+    this.showChat = localStorage.getItem('showChat') === 'true';
+
     this.route.params.subscribe((params) => {
-      console.log(params);
+      console.log('params', params);
 
       this.stream = params.stream || 'main';
       this.app = params.app;
       this.protocol = null;
       this.server = null;
-
-      this.showChat = localStorage.getItem('showChat') === 'true';
 
       this.streamStats.setChannel(this.stream);
 
@@ -64,8 +66,18 @@ export class StreamPageComponent implements OnInit, OnDestroy {
     });
 
     this.subscription = this.streamStats.statsSubject.subscribe(
-      ({ streams }) => {
-        console.log('gotFirstStats', this.stream, this.gotFirstStats, streams);
+      ({ streams, channel }) => {
+        console.log(
+          'streamStats',
+          this.stream,
+          this.gotFirstStats,
+          streams,
+          channel,
+        );
+
+        if (channel !== this.stream) {
+          return;
+        }
 
         console.log(this.stream, this.app, this.protocol, this.server);
 
@@ -77,24 +89,21 @@ export class StreamPageComponent implements OnInit, OnDestroy {
           return;
         }
 
-        if (this.app && this.protocol && this.server) {
-          const stream = _.find(streams, {
-            app: this.app,
-            server: this.server,
-            protocol: this.protocol,
-          });
+        for (const stream of streams) {
+          if (!this.app) {
+            this.app = stream.app;
+            this.protocol = stream.protocol;
+            this.server = stream.server;
 
-          this.stats = stream;
-        } else {
-          const stream = streams[0];
+            break;
+          }
 
-          this.app = stream?.app;
+          if (this.app == stream.app) {
+            this.protocol = stream.protocol;
+            this.server = stream.server;
 
-          this.server = stream?.server;
-
-          this.protocol = stream?.protocol;
-
-          this.stats = stream;
+            break;
+          }
         }
 
         this.gotFirstStats = true;

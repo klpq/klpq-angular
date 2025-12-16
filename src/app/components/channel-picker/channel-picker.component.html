@@ -26,6 +26,8 @@
   <div
     #toggleButtonQuality
     [class.active]="isMenuOpenQuality"
+    [class.disabled]="!hasQualityChannels"
+    [attr.aria-disabled]="!hasQualityChannels"
     class="live-btn"
     (click)="toggleMenuQuality()"
   >

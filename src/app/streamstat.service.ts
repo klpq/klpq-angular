@@ -38,6 +38,7 @@ export enum ProtocolsEnum {
 }
 
 export interface Stats {
+  channel: string | null;
   streams: {
     app: string;
     duration: number;
@@ -68,6 +69,7 @@ export interface QualityEntry {
 })
 export class StreamStatService {
   stats: Stats = {
+    channel: null,
     streams: [],
   };
 
@@ -193,16 +195,24 @@ export class StreamStatService {
     console.log('fetchStats', channel);
 
     const source = this.http
-      .get(url(channel), {
+      .get<{
+        streams: Stats['streams'];
+      }>(url(channel), {
         headers: {
           'jwt-token': window.localStorage.getItem('token') || '',
         },
       })
-      .pipe(map((data: Stats) => data));
+      .pipe();
 
     source.subscribe((data) => {
-      this.stats = data;
-      this.statsSubject.next(data);
+      this.stats = {
+        channel,
+        ...data,
+      };
+      this.statsSubject.next({
+        channel,
+        ...data,
+      });
     });
   }
 }

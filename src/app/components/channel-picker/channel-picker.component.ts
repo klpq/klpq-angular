@@ -30,6 +30,13 @@ export class ChannelPickerComponent implements OnInit {
   isMenuOpen = false;
   isMenuOpenQuality = false;
 
+  get hasQualityChannels(): boolean {
+    return (
+      (this.qualityLive?.length || 0) > 0 ||
+      (this.qualityOffline?.length || 0) > 0
+    );
+  }
+
   constructor(private stats: StreamStatService, private renderer: Renderer2) {
     this.renderer.listen('window', 'click', (e: Event) => {
       /**
@@ -56,6 +63,8 @@ export class ChannelPickerComponent implements OnInit {
        * the menu and button the condition above must close the menu
        */
       if (
+        this.toggleButtonQuality &&
+        this.menuQuality &&
         !this.toggleButtonQuality.nativeElement.contains(e.target) &&
         !this.menuQuality.nativeElement.contains(e.target)
       ) {
@@ -86,6 +95,9 @@ export class ChannelPickerComponent implements OnInit {
   }
 
   toggleMenuQuality() {
+    if (!this.hasQualityChannels) {
+      return;
+    }
     this.isMenuOpenQuality = !this.isMenuOpenQuality;
   }
 }
