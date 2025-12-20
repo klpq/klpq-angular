@@ -176,10 +176,8 @@ export class StreamStatService {
         path: `${this.channel}/${stream.protocol}/${stream.app}`,
       };
 
-      if (stream?.isLive) {
+      if (!_.find(qualityLive, { label })) {
         qualityLive.push(qualityEntry);
-      } else {
-        qualityOffline.push(qualityEntry);
       }
     }
 

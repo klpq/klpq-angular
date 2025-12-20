@@ -37,10 +37,6 @@
         <span> {{ stats.bitrate || 0 }}</span>
       </div>
       <div class="stat" *ngIf="stats?.isLive">
-        <span class="fas fa-clock"></span>
-        <span> {{ stats.duration }}</span>
-      </div>
-      <div class="stat" *ngIf="stats?.isLive">
         <span class="fas fa-hourglass-half"></span>
         <span> {{ stats.startTime | date: 'shortTime' }}</span>
       </div>

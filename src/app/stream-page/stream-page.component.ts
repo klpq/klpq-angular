@@ -79,6 +79,7 @@ export class StreamPageComponent implements OnInit, OnDestroy {
           this.gotFirstStats,
           streams,
           channel,
+          this.channel,
         );
 
         if (channel !== this.channel) {
@@ -87,52 +88,42 @@ export class StreamPageComponent implements OnInit, OnDestroy {
 
         console.log(this.channel, this.protocol, this.app, this.edgeUrl);
 
-        if (streams.length === 0) {
-          return;
-        }
-
-        if (this.gotFirstStats) {
-          return;
-        }
-
         let viewers = 0;
 
         streams.forEach((s) => {
           viewers += s.viewers;
         });
 
-        for (const stream of streams) {
-          if (!this.protocol && [ProtocolsEnum.FLV].includes(stream.protocol)) {
-            this.protocol = stream.protocol;
-            this.app = stream.app;
-            this.edgeUrl = stream.urls.edge;
+        const stream = _.find(streams, (s) => {
+          const conditions: boolean[] = [s.protocol === this.protocol];
 
-            this.stats = {
-              isLive: true,
-              viewers,
-              bitrate: stream.bitrate,
-              duration: stream.duration,
-              startTime: new Date(stream.startTime),
-            };
-
-            break;
+          if (this.app) {
+            conditions.push(s.app === this.app);
           }
 
-          if (this.protocol == stream.protocol) {
-            this.protocol = stream.protocol;
-            this.app = stream.app;
-            this.edgeUrl = stream.urls.edge;
+          return _.every(conditions);
+        });
 
-            this.stats = {
-              isLive: true,
-              viewers,
-              bitrate: stream.bitrate,
-              duration: stream.duration,
-              startTime: new Date(stream.startTime),
-            };
+        if (!stream) {
+          return;
+        }
 
-            break;
-          }
+        console.log('streamStats', stream);
+
+        this.protocol = stream.protocol;
+        this.app = stream.app;
+        this.edgeUrl = stream.urls.edge;
+
+        this.stats = {
+          isLive: true,
+          viewers,
+          bitrate: stream.bitrate,
+          duration: stream.duration,
+          startTime: new Date(stream.startTime),
+        };
+
+        if (this.gotFirstStats) {
+          return;
         }
 
         this.gotFirstStats = true;
