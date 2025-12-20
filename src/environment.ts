@@ -2,13 +2,12 @@
 // `ng build --prod` replaces `environment.ts` with `environment.prod.ts`.
 // The list of file replacements can be found in `angular.json`.
 
-import { default as config } from '../../.env.json';
+import { default as config } from '../.env.json';
 
 const environment = {
   production: config.NODE_ENV === 'production',
   CHAT_URL: config.CHAT_URL,
   STATS_URL: config.STATS_URL,
-  STATS_SERVER: config.STATS_SERVER,
   CURRENT_PAGE: config.CURRENT_PAGE,
   STREAM_PAGE_REDIRECT_URL: config.STREAM_PAGE_REDIRECT_URL,
   MAIN_PAGE_URL: config.MAIN_PAGE_URL,

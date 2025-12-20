@@ -5,7 +5,7 @@ import { createPlayer } from '../utils/channels';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import * as _ from 'lodash';
 
-import environment from '../../environments/environment';
+import environment from '../../environment';
 import { Subscription } from 'rxjs';
 
 @Component({
@@ -14,14 +14,20 @@ import { Subscription } from 'rxjs';
   styleUrls: ['./stream-page.component.scss'],
 })
 export class StreamPageComponent implements OnInit, OnDestroy {
-  stream = 'main';
+  channel: string;
   protocol: ProtocolsEnum;
   app: string;
-  origin: string;
+  edgeUrl: string;
 
   showChat = false;
 
-  stats: Stats['streams'][0];
+  stats: {
+    isLive: boolean;
+    viewers: number;
+    bitrate: number;
+    duration: number;
+    startTime: Date;
+  } = null;
 
   playerInit = false;
   chatUrl: SafeResourceUrl;
@@ -49,12 +55,12 @@ export class StreamPageComponent implements OnInit, OnDestroy {
     this.route.params.subscribe((params) => {
       console.log('params', params);
 
-      this.stream = params.stream || 'main';
+      this.channel = params.channel || 'main';
       this.protocol = params.protocol || ProtocolsEnum.FLV;
       this.app = params.app;
-      this.origin = null;
+      this.edgeUrl = null;
 
-      this.streamStats.setChannel(this.stream);
+      this.streamStats.setChannel(this.channel);
 
       this.playerInit = false;
 
@@ -69,17 +75,17 @@ export class StreamPageComponent implements OnInit, OnDestroy {
       ({ streams, channel }) => {
         console.log(
           'streamStats',
-          this.stream,
+          this.channel,
           this.gotFirstStats,
           streams,
           channel,
         );
 
-        if (channel !== this.stream) {
+        if (channel !== this.channel) {
           return;
         }
 
-        console.log(this.stream, this.app, this.protocol, this.origin);
+        console.log(this.channel, this.protocol, this.app, this.edgeUrl);
 
         if (streams.length === 0) {
           return;
@@ -89,19 +95,41 @@ export class StreamPageComponent implements OnInit, OnDestroy {
           return;
         }
 
+        let viewers = 0;
+
+        streams.forEach((s) => {
+          viewers += s.viewers;
+        });
+
         for (const stream of streams) {
           if (!this.protocol && [ProtocolsEnum.FLV].includes(stream.protocol)) {
-            this.app = stream.app;
             this.protocol = stream.protocol;
-            this.origin = stream.origin;
+            this.app = stream.app;
+            this.edgeUrl = stream.urls.edge;
+
+            this.stats = {
+              isLive: true,
+              viewers,
+              bitrate: stream.bitrate,
+              duration: stream.duration,
+              startTime: new Date(stream.startTime),
+            };
 
             break;
           }
 
           if (this.protocol == stream.protocol) {
-            this.app = stream.app;
             this.protocol = stream.protocol;
-            this.origin = stream.origin;
+            this.app = stream.app;
+            this.edgeUrl = stream.urls.edge;
+
+            this.stats = {
+              isLive: true,
+              viewers,
+              bitrate: stream.bitrate,
+              duration: stream.duration,
+              startTime: new Date(stream.startTime),
+            };
 
             break;
           }
@@ -167,9 +195,10 @@ export class StreamPageComponent implements OnInit, OnDestroy {
     console.log(
       'initPlayer',
       !!this.stopFnc,
-      this.app,
+      this.channel,
       this.protocol,
-      this.origin,
+      this.app,
+      this.edgeUrl,
     );
 
     if (this.stopFnc) {
@@ -182,7 +211,7 @@ export class StreamPageComponent implements OnInit, OnDestroy {
       return;
     }
 
-    if (this.app && this.protocol && this.origin) {
+    if (this.protocol && this.app && this.edgeUrl) {
       this.playerInit = true;
 
       const playerSelector =
@@ -195,13 +224,11 @@ export class StreamPageComponent implements OnInit, OnDestroy {
 
       playerSelector.replaceChildren(videoPlayer);
 
-      console.log('player loading...', this.app, this.stream, this.protocol);
+      console.log('player loading...', this.channel, this.app, this.protocol);
 
       this.stopFnc = await createPlayer(
-        this.origin,
-        this.app,
-        this.stream,
-        this.protocol as ProtocolsEnum,
+        this.protocol,
+        this.edgeUrl,
         videoPlayer,
       );
 

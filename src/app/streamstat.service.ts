@@ -4,7 +4,7 @@ import humanizeDuration from 'humanize-duration';
 import { BehaviorSubject, interval, Observable, Subscription } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { find } from 'lodash';
-import environment from 'src/environments/environment';
+import environment from 'src/environment';
 import * as _ from 'lodash';
 import axios from 'axios';
 
@@ -46,9 +46,11 @@ export interface Stats {
     viewers: number;
     isLive: boolean;
     startTime: string;
-    origin: string;
     protocol: ProtocolsEnum;
     bitrate: number;
+    urls: {
+      edge: string;
+    };
   }[];
 }
 
@@ -79,9 +81,8 @@ export class StreamStatService {
     qualityLive: [],
     qualityOffline: [],
   };
-  currentChannel;
-  currentApp;
-  currentServer;
+
+  channel: string;
 
   statsSubject = new BehaviorSubject(this.stats);
   onlineChannels = new BehaviorSubject(this.channels);
@@ -101,18 +102,18 @@ export class StreamStatService {
   }
 
   initService() {
-    this.intervalSource = interval(30000).subscribe(() => {
-      this.fetchStats(this.currentChannel);
+    this.intervalSource = interval(10000).subscribe(() => {
+      this.fetchStats(this.channel);
 
       this.fetchChannels();
     });
   }
 
   setChannel(channel: string) {
-    this.currentChannel = channel;
+    this.channel = channel;
 
-    if (this.currentChannel) {
-      this.openedChannels.push(this.currentChannel);
+    if (this.channel) {
+      this.openedChannels.push(this.channel);
 
       let openedChannelsJson = localStorage.getItem('channels');
 
@@ -128,7 +129,7 @@ export class StreamStatService {
       localStorage.setItem('channels', JSON.stringify(this.openedChannels));
     }
 
-    this.fetchStats(this.currentChannel);
+    this.fetchStats(this.channel);
     this.fetchChannels();
   }
 
@@ -157,7 +158,7 @@ export class StreamStatService {
 
     const {
       data: { streams },
-    } = await axios.get<Stats>(url(this.currentChannel));
+    } = await axios.get<Stats>(url(this.channel));
 
     for (const stream of streams) {
       if (
@@ -172,7 +173,7 @@ export class StreamStatService {
 
       const qualityEntry = {
         label,
-        path: `${this.currentChannel}/${stream.protocol}/${stream.app}`,
+        path: `${this.channel}/${stream.protocol}/${stream.app}`,
       };
 
       if (stream?.isLive) {

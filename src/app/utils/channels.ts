@@ -41,10 +41,8 @@ function isAndroid() {
 }
 
 export async function createPlayer(
-  origin: string,
-  app: string,
-  stream: string,
   protocol: ProtocolsEnum,
+  edgeUrl: string,
   videoElement: HTMLMediaElement,
 ): Promise<() => void> {
   let stopPlaybackFnc = () => null;
@@ -52,43 +50,35 @@ export async function createPlayer(
   switch (protocol) {
     case ProtocolsEnum.FLV:
     case ProtocolsEnum.RTMP: {
-      const url = getLink(origin, stream, app);
-
-      stopPlaybackFnc = createWssPlayer(videoElement, url);
+      stopPlaybackFnc = createWssPlayer(videoElement, edgeUrl);
 
       break;
     }
     case ProtocolsEnum.MPD: {
-      const url = await getMpdLink(origin, stream, app);
-
       if (isAndroid()) {
-        stopPlaybackFnc = createNativePlayer(videoElement, url);
+        stopPlaybackFnc = createNativePlayer(videoElement, edgeUrl);
 
         break;
       }
 
-      stopPlaybackFnc = createMpdPlayer(videoElement, url);
+      stopPlaybackFnc = createMpdPlayer(videoElement, edgeUrl);
 
       break;
     }
     case ProtocolsEnum.HLS: {
-      const url = await getHlsLink(origin, stream, app);
-
       if (isIOS()) {
-        stopPlaybackFnc = createNativePlayer(videoElement, url);
+        stopPlaybackFnc = createNativePlayer(videoElement, edgeUrl);
 
         break;
       }
 
-      stopPlaybackFnc = createHlsPlayer(videoElement, url);
+      stopPlaybackFnc = createHlsPlayer(videoElement, edgeUrl);
 
       break;
     }
     default: {
       if (isIOS()) {
-        const url = await getHlsLink(origin, stream, app);
-
-        stopPlaybackFnc = createNativePlayer(videoElement, url);
+        stopPlaybackFnc = createNativePlayer(videoElement, edgeUrl);
 
         break;
       }
@@ -101,9 +91,7 @@ export async function createPlayer(
       //   break;
       // }
 
-      const url = getLink(origin, stream, app);
-
-      stopPlaybackFnc = createWssPlayer(videoElement, url);
+      stopPlaybackFnc = createWssPlayer(videoElement, edgeUrl);
 
       break;
     }

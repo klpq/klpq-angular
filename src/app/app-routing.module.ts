@@ -4,7 +4,7 @@ import { IndexPageComponent } from './index-page/index-page.component';
 import { StreamPageComponent } from './stream-page/stream-page.component';
 import { MinimalComponent } from './stream-page/minimal/minimal.component';
 import { RedirectComponent } from './redirect-page/redirect-page.component';
-import environment from 'src/environments/environment';
+import environment from 'src/environment';
 
 const routesWww: Routes = [
   {
@@ -34,15 +34,15 @@ const routesStream: Routes = [
     component: IndexPageComponent,
   },
   {
-    path: ':stream/:protocol/:app',
+    path: ':channel/:protocol/:app',
     component: StreamPageComponent,
   },
   {
-    path: ':stream/:protocol',
+    path: ':channel/:protocol',
     component: StreamPageComponent,
   },
   {
-    path: ':stream',
+    path: ':channel',
     component: StreamPageComponent,
   },
   {
