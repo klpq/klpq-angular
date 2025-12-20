@@ -34,7 +34,11 @@ const routesStream: Routes = [
     component: IndexPageComponent,
   },
   {
-    path: ':stream/:app',
+    path: ':stream/:protocol/:app',
+    component: StreamPageComponent,
+  },
+  {
+    path: ':stream/:protocol',
     component: StreamPageComponent,
   },
   {

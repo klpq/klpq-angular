@@ -32,7 +32,8 @@ const fixTime = (duration: number) =>
   });
 
 export enum ProtocolsEnum {
-  WSS = 'rtmp',
+  RTMP = 'rtmp',
+  FLV = 'flv',
   MPD = 'mpd',
   HLS = 'hls',
 }
@@ -45,17 +46,9 @@ export interface Stats {
     viewers: number;
     isLive: boolean;
     startTime: string;
-    server: string;
+    origin: string;
     protocol: ProtocolsEnum;
     bitrate: number;
-  }[];
-}
-
-interface IListResponse {
-  channels: string[];
-  live: {
-    app: string;
-    channel: string;
   }[];
 }
 
@@ -149,12 +142,10 @@ export class StreamStatService {
     for (const channelName of this.openedChannels) {
       try {
         const {
-          data: {
-            streams: [stream],
-          },
+          data: { streams },
         } = await axios.get<Stats>(url(channelName));
 
-        if (stream?.isLive) {
+        if (streams.length > 0) {
           liveChannels.push(channelName);
         } else {
           offlineChannels.push(channelName);
@@ -169,10 +160,19 @@ export class StreamStatService {
     } = await axios.get<Stats>(url(this.currentChannel));
 
     for (const stream of streams) {
-      const label = stream.app;
+      if (
+        ![ProtocolsEnum.FLV, ProtocolsEnum.HLS, ProtocolsEnum.MPD].includes(
+          stream.protocol,
+        )
+      ) {
+        continue;
+      }
+
+      const label = `${stream.protocol}/${stream.app}`;
+
       const qualityEntry = {
         label,
-        path: `${this.currentChannel}/${stream.app}`,
+        path: `${this.currentChannel}/${stream.protocol}/${stream.app}`,
       };
 
       if (stream?.isLive) {

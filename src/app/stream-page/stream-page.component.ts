@@ -15,9 +15,9 @@ import { Subscription } from 'rxjs';
 })
 export class StreamPageComponent implements OnInit, OnDestroy {
   stream = 'main';
-  app: string;
-  server: string;
   protocol: ProtocolsEnum;
+  app: string;
+  origin: string;
 
   showChat = false;
 
@@ -50,9 +50,9 @@ export class StreamPageComponent implements OnInit, OnDestroy {
       console.log('params', params);
 
       this.stream = params.stream || 'main';
+      this.protocol = params.protocol || ProtocolsEnum.FLV;
       this.app = params.app;
-      this.protocol = null;
-      this.server = null;
+      this.origin = null;
 
       this.streamStats.setChannel(this.stream);
 
@@ -79,7 +79,7 @@ export class StreamPageComponent implements OnInit, OnDestroy {
           return;
         }
 
-        console.log(this.stream, this.app, this.protocol, this.server);
+        console.log(this.stream, this.app, this.protocol, this.origin);
 
         if (streams.length === 0) {
           return;
@@ -90,17 +90,18 @@ export class StreamPageComponent implements OnInit, OnDestroy {
         }
 
         for (const stream of streams) {
-          if (!this.app) {
+          if (!this.protocol && [ProtocolsEnum.FLV].includes(stream.protocol)) {
             this.app = stream.app;
             this.protocol = stream.protocol;
-            this.server = stream.server;
+            this.origin = stream.origin;
 
             break;
           }
 
-          if (this.app == stream.app) {
+          if (this.protocol == stream.protocol) {
+            this.app = stream.app;
             this.protocol = stream.protocol;
-            this.server = stream.server;
+            this.origin = stream.origin;
 
             break;
           }
@@ -168,7 +169,7 @@ export class StreamPageComponent implements OnInit, OnDestroy {
       !!this.stopFnc,
       this.app,
       this.protocol,
-      this.server,
+      this.origin,
     );
 
     if (this.stopFnc) {
@@ -181,7 +182,7 @@ export class StreamPageComponent implements OnInit, OnDestroy {
       return;
     }
 
-    if (this.app && this.protocol && this.server) {
+    if (this.app && this.protocol && this.origin) {
       this.playerInit = true;
 
       const playerSelector =
@@ -197,7 +198,7 @@ export class StreamPageComponent implements OnInit, OnDestroy {
       console.log('player loading...', this.app, this.stream, this.protocol);
 
       this.stopFnc = await createPlayer(
-        this.server,
+        this.origin,
         this.app,
         this.stream,
         this.protocol as ProtocolsEnum,
