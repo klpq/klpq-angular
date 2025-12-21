@@ -202,18 +202,17 @@ export class StreamPageComponent implements OnInit, OnDestroy {
       return;
     }
 
+    const playerSelector = document.getElementsByClassName('player-section')[0];
+
+    const videoPlayer = document.createElement('video');
+
+    videoPlayer.setAttribute('id', 'player');
+    videoPlayer.setAttribute('controls', 'true');
+
+    playerSelector.replaceChildren(videoPlayer);
+
     if (this.protocol && this.app && this.edgeUrl) {
       this.playerInit = true;
-
-      const playerSelector =
-        document.getElementsByClassName('player-section')[0];
-
-      const videoPlayer = document.createElement('video');
-
-      videoPlayer.setAttribute('id', 'player');
-      videoPlayer.setAttribute('controls', 'true');
-
-      playerSelector.replaceChildren(videoPlayer);
 
       console.log('player loading...', this.channel, this.app, this.protocol);
 

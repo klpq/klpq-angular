@@ -73,12 +73,12 @@ export class StreamStatService {
   channels: {
     online: string[];
     offline: string[];
-    qualityLive: QualityEntry[];
+    qualityOnline: QualityEntry[];
     qualityOffline: QualityEntry[];
   } = {
     online: [],
     offline: [],
-    qualityLive: [],
+    qualityOnline: [],
     qualityOffline: [],
   };
 
@@ -117,12 +117,14 @@ export class StreamStatService {
 
       let openedChannelsJson = localStorage.getItem('channels');
 
-      if (openedChannelsJson) {
-        this.openedChannels = [
-          ...this.openedChannels,
-          ...JSON.parse(openedChannelsJson),
-        ];
-      }
+      try {
+        if (openedChannelsJson) {
+          this.openedChannels = [
+            ...this.openedChannels,
+            ...JSON.parse(openedChannelsJson),
+          ];
+        }
+      } catch (error) {}
 
       this.openedChannels = _.uniq(this.openedChannels);
 
@@ -134,10 +136,10 @@ export class StreamStatService {
   }
 
   async fetchChannels() {
-    const liveChannels: string[] = [];
+    const onlineChannels: string[] = [];
     const offlineChannels: string[] = [];
 
-    const qualityLive: QualityEntry[] = [];
+    const qualityOnline: QualityEntry[] = [];
     const qualityOffline: QualityEntry[] = [];
 
     for (const channelName of this.openedChannels) {
@@ -147,7 +149,7 @@ export class StreamStatService {
         } = await axios.get<Stats>(url(channelName));
 
         if (streams.length > 0) {
-          liveChannels.push(channelName);
+          onlineChannels.push(channelName);
         } else {
           offlineChannels.push(channelName);
         }
@@ -156,35 +158,37 @@ export class StreamStatService {
       }
     }
 
-    const {
-      data: { streams },
-    } = await axios.get<Stats>(url(this.channel));
-
-    for (const stream of streams) {
-      if (
-        ![ProtocolsEnum.FLV, ProtocolsEnum.HLS, ProtocolsEnum.MPD].includes(
-          stream.protocol,
-        )
-      ) {
-        continue;
-      }
-
-      const label = `${stream.protocol}/${stream.app}`;
-
-      const qualityEntry = {
-        label,
-        path: `${this.channel}/${stream.protocol}/${stream.app}`,
-      };
-
-      if (!_.find(qualityLive, { label })) {
-        qualityLive.push(qualityEntry);
-      }
-    }
-
-    this.channels.online = liveChannels;
+    this.channels.online = onlineChannels;
     this.channels.offline = offlineChannels;
 
-    this.channels.qualityLive = qualityLive;
+    try {
+      const {
+        data: { streams },
+      } = await axios.get<Stats>(url(this.channel));
+
+      for (const stream of streams) {
+        if (
+          ![ProtocolsEnum.FLV, ProtocolsEnum.HLS, ProtocolsEnum.MPD].includes(
+            stream.protocol,
+          )
+        ) {
+          continue;
+        }
+
+        const label = `${stream.protocol}/${stream.app}`;
+
+        const qualityEntry = {
+          label,
+          path: `${this.channel}/${stream.protocol}/${stream.app}`,
+        };
+
+        if (!_.find(qualityOnline, { label })) {
+          qualityOnline.push(qualityEntry);
+        }
+      }
+    } catch (error) {}
+
+    this.channels.qualityOnline = qualityOnline;
     this.channels.qualityOffline = qualityOffline;
 
     this.onlineChannels.next(this.channels);

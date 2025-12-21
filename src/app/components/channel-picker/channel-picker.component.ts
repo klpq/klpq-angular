@@ -78,7 +78,7 @@ export class ChannelPickerComponent implements OnInit {
       this.online = channels.online;
       this.offline = channels.offline;
 
-      this.qualityLive = channels.qualityLive;
+      this.qualityLive = channels.qualityOnline;
       this.qualityOffline = channels.qualityOffline;
 
       this.isLoading = false;
