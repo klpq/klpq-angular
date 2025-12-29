@@ -216,11 +216,7 @@ export class StreamPageComponent implements OnInit, OnDestroy {
 
       console.log('player loading...', this.channel, this.app, this.protocol);
 
-      this.stopFnc = await createPlayer(
-        this.protocol,
-        this.edgeUrl,
-        videoPlayer,
-      );
+      this.stopFnc = await createPlayer(this.edgeUrl, videoPlayer);
 
       console.log('player created');
     }

@@ -4,11 +4,11 @@
   "scripts": {
     "prettier": "prettier \"**/*\" --list-different --ignore-unknown",
     "prettier:fix": "prettier \"**/*\" --write --ignore-unknown",
-    "build-env-file": "node build-env-file.js",
+    "env": "node env.js",
     "ng": "ng",
-    "start": "yarn run build-env-file && ng serve --host=0.0.0.0",
-    "build": "yarn run build-env-file && ng build --configuration production",
-    "build:azure": "yarn run build-env-file && ./node_modules/.bin/ng build --configuration production",
+    "start": "yarn run env && ng serve --host=0.0.0.0",
+    "build": "yarn run env && ng build --configuration production",
+    "build:azure": "yarn run env && ./node_modules/.bin/ng build --configuration production",
     "test": "ng test",
     "lint": "ng lint",
     "e2e": "ng e2e"

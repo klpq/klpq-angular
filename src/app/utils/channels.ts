@@ -1,39 +1,11 @@
 import * as dashjs from 'dashjs';
 import Hls from 'hls.js';
-import axios from 'axios';
 import Mpegts from 'mpegts.js';
 
 import { ProtocolsEnum } from '../streamstat.service';
 
-export const getLink = (origin, name, app) => {
-  return `${origin}/${app}/${name}.flv`;
-};
-
-export const getMpdLink = async (origin, name, app) => {
-  console.log('get mpd link', name);
-
-  return `${origin}/channels/${name}/${app}/index.mpd`;
-};
-
-export const getHlsLink = async (origin, name, app) => {
-  console.log('get hls link', name);
-
-  return `${origin}/channels/${name}/${app}/index.m3u8`;
-};
-
 function isIOS() {
-  return (
-    [
-      'iPad Simulator',
-      'iPhone Simulator',
-      'iPod Simulator',
-      'iPad',
-      'iPhone',
-      'iPod',
-    ].includes(navigator.platform) ||
-    // iPad on iOS 13 detection
-    (navigator.userAgent.includes('Mac') && 'ontouchend' in document)
-  );
+  return /iPad|iPhone|iPod/.test(navigator.userAgent);
 }
 
 function isAndroid() {
@@ -41,57 +13,52 @@ function isAndroid() {
 }
 
 export async function createPlayer(
-  protocol: ProtocolsEnum,
   edgeUrl: string,
   videoElement: HTMLMediaElement,
 ): Promise<() => void> {
+  let protocol: ProtocolsEnum;
+
+  const ext = new URL(edgeUrl, location.href).pathname.split('.').pop();
+
+  switch (ext) {
+    case 'flv':
+      protocol = ProtocolsEnum.FLV;
+
+      break;
+    case 'hls':
+      protocol = ProtocolsEnum.HLS;
+
+      break;
+    case 'm3u8':
+      protocol = ProtocolsEnum.MPD;
+
+      break;
+    default:
+      break;
+  }
+
   let stopPlaybackFnc = () => null;
 
-  switch (protocol) {
-    case ProtocolsEnum.FLV:
-    case ProtocolsEnum.RTMP: {
+  switch (ext) {
+    case ProtocolsEnum.FLV: {
       stopPlaybackFnc = createWssPlayer(videoElement, edgeUrl);
-
-      break;
-    }
-    case ProtocolsEnum.MPD: {
-      if (isAndroid()) {
-        stopPlaybackFnc = createNativePlayer(videoElement, edgeUrl);
-
-        break;
-      }
-
-      stopPlaybackFnc = createMpdPlayer(videoElement, edgeUrl);
-
-      break;
-    }
-    case ProtocolsEnum.HLS: {
-      if (isIOS()) {
-        stopPlaybackFnc = createNativePlayer(videoElement, edgeUrl);
-
-        break;
-      }
-
-      stopPlaybackFnc = createHlsPlayer(videoElement, edgeUrl);
 
       break;
     }
     default: {
-      if (isIOS()) {
-        stopPlaybackFnc = createNativePlayer(videoElement, edgeUrl);
+      if (isIOS) {
+        stopPlaybackFnc = createHlsPlayer(videoElement, edgeUrl);
 
         break;
       }
 
-      // if (isAndroid()) {
-      //   const url = await getMpdLink(stream, app);
+      if (isAndroid()) {
+        stopPlaybackFnc = createMpdPlayer(videoElement, edgeUrl);
 
-      //   stopPlaybackFnc = createNativePlayer(videoElement, url);
+        break;
+      }
 
-      //   break;
-      // }
-
-      stopPlaybackFnc = createWssPlayer(videoElement, edgeUrl);
+      stopPlaybackFnc = createNativePlayer(videoElement, edgeUrl);
 
       break;
     }
