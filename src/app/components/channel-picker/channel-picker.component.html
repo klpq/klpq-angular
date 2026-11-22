@@ -16,7 +16,7 @@
       [hidden]="openMenu !== 'channels'"
     >
       <p *ngIf="!channels.online.length && !channels.offline.length">
-        Loading channels…
+        No saved channels
       </p>
       <ng-container
         *ngFor="
@@ -24,15 +24,24 @@
           let live = first
         "
       >
-        <a
-          *ngFor="let name of group"
-          [routerLink]="['/', name]"
-          [attr.aria-current]="channel === name ? 'true' : null"
-          (click)="openMenu = null"
-        >
-          <span>{{ name }}</span>
-          <small *ngIf="live">Live</small>
-        </a>
+        <div class="channel-option" *ngFor="let name of group">
+          <a
+            [routerLink]="['/', name]"
+            [attr.aria-current]="channel === name ? 'true' : null"
+            (click)="openMenu = null"
+          >
+            <span>{{ name }}</span>
+            <small *ngIf="live">Live</small>
+          </a>
+          <button
+            type="button"
+            class="remove-channel"
+            [attr.aria-label]="'Remove ' + name + ' from saved channels'"
+            (click)="removeChannel(name)"
+          >
+            <span aria-hidden="true">×</span>
+          </button>
+        </div>
       </ng-container>
     </div>
   </div>

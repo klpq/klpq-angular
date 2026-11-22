@@ -5,7 +5,7 @@
   gap: 0.45rem;
 }
 
-button {
+.picker > button {
   display: flex;
   align-items: center;
   gap: 0.55rem;
@@ -96,12 +96,39 @@ a:focus-visible {
   }
 }
 
+.channel-option {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.2rem;
+  align-items: center;
+}
+
+.remove-channel {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  border: 0;
+  border-radius: 5px;
+  color: var(--stream-muted);
+  background: transparent;
+  font-size: 1.3rem;
+  cursor: pointer;
+
+  &:hover,
+  &:focus-visible {
+    color: var(--stream-text);
+    background: var(--stream-bg);
+  }
+}
+
 @media (max-width: 520px) {
   :host {
     gap: 0.3rem;
   }
 
-  button {
+  .picker > button {
     gap: 0.35rem;
     padding-inline: 0.5rem;
   }

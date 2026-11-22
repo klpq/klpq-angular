@@ -1,144 +1,63 @@
-<div class="main-body" role="img" id="renderer" (mouseover)="playSound()">
-  <div class="title" id="title">KLPQ</div>
-  <canvas #rendererCanvas id="renderCanvas"></canvas>
-</div>
+<main class="station" [class.receiving]="transmission">
+  <header class="station-header">
+    <button
+      type="button"
+      class="sound-control"
+      [attr.aria-pressed]="soundOn"
+      (click)="toggleSound()"
+    >
+      <i
+        class="fas"
+        [ngClass]="soundOn ? 'fa-volume-up' : 'fa-volume-mute'"
+        aria-hidden="true"
+      ></i>
+      Sound
+    </button>
+    <a href="/stream" class="watch-link">Watch stream</a>
+  </header>
 
-<video
-  id="video1"
-  loop
-  muted="muted"
-  autoplay
-  crossOrigin="anonymous"
-  playsinline
-  style="display: none"
->
-  <source
-    src="assets/images/index/1.mp4"
-    type='video/ogg; codecs="theora, vorbis"'
-  />
-</video>
-<video
-  id="video2"
-  loop
-  muted="muted"
-  autoplay
-  crossOrigin="anonymous"
-  playsinline
-  style="display: none"
->
-  <source
-    src="assets/images/index/2.mp4"
-    type='video/ogg; codecs="theora, vorbis"'
-  />
-</video>
-<video
-  id="video3"
-  loop
-  muted="muted"
-  autoplay
-  crossOrigin="anonymous"
-  playsinline
-  style="display: none"
->
-  <source
-    src="assets/images/index/3.mp4"
-    type='video/ogg; codecs="theora, vorbis"'
-  />
-</video>
-<video
-  id="video4"
-  loop
-  muted="muted"
-  autoplay
-  crossOrigin="anonymous"
-  playsinline
-  style="display: none"
->
-  <source
-    src="assets/images/index/4.mp4"
-    type='video/ogg; codecs="theora, vorbis"'
-  />
-</video>
-<video
-  id="video5"
-  loop
-  muted="muted"
-  autoplay
-  crossOrigin="anonymous"
-  playsinline
-  style="display: none"
->
-  <source
-    src="assets/images/index/5.mp4"
-    type='video/ogg; codecs="theora, vorbis"'
-  />
-</video>
-<video
-  id="video6"
-  loop
-  muted="muted"
-  autoplay
-  crossOrigin="anonymous"
-  playsinline
-  style="display: none"
->
-  <source
-    src="assets/images/index/6.mp4"
-    type='video/ogg; codecs="theora, vorbis"'
-  />
-</video>
-<video
-  id="video7"
-  loop
-  autoplay
-  crossOrigin="anonymous"
-  playsinline
-  style="display: none"
->
-  <source
-    src="assets/images/index/7.mp4"
-    type='video/ogg; codecs="theora, vorbis"'
-  />
-</video>
-<video
-  id="video8"
-  muted="muted"
-  autoplay
-  loop
-  crossOrigin="anonymous"
-  playsinline
-  style="display: none"
->
-  <source
-    src="assets/images/index/8.mp4"
-    type='video/ogg; codecs="theora, vorbis"'
-  />
-</video>
-<video
-  id="video9"
-  loop
-  muted="muted"
-  autoplay
-  crossOrigin="anonymous"
-  playsinline
-  style="display: none"
->
-  <source
-    src="assets/images/index/9.mp4"
-    type='video/ogg; codecs="theora, vorbis"'
-  />
-</video>
-<video
-  id="video10"
-  loop
-  muted="muted"
-  autoplay
-  crossOrigin="anonymous"
-  playsinline
-  style="display: none"
->
-  <source
-    src="assets/images/index/10.mp4"
-    type='video/ogg; codecs="theora, vorbis"'
-  />
-</video>
+  <div class="signs">
+    <h1 aria-label="KLPQ">KLP<span>Q</span></h1>
+    <div class="signal">
+      {{
+        transmission
+          ? 'TRANSMISSION RECEIVED'
+          : crossing
+          ? 'BOARS HAVE RIGHT OF WAY'
+          : 'SIGNAL FOUND'
+      }}
+    </div>
+  </div>
+
+  <div class="scene" aria-hidden="true">
+    <canvas #rendererCanvas></canvas>
+  </div>
+
+  <button
+    type="button"
+    class="boar"
+    aria-label="Tune in to the hidden transmission"
+    (click)="receiveTransmission()"
+  >
+    <img src="/assets/images/index/boar.png" alt="" />
+  </button>
+
+  <p class="transmission" role="status">{{ transmission }}</p>
+
+  <audio
+    #ambience
+    src="/assets/images/index/audio.mp3"
+    preload="none"
+    loop
+  ></audio>
+  <video
+    *ngFor="let id of screenVideos"
+    #feed
+    [src]="'/assets/images/index/' + id + '.mp4'"
+    [muted]="true"
+    playsinline
+    loop
+    preload="none"
+    hidden
+  ></video>
+</main>

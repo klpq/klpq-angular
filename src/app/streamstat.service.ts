@@ -8,6 +8,9 @@ import environment from 'src/environment';
 import * as _ from 'lodash';
 import axios from 'axios';
 
+const SAVED_CHANNELS_KEY = 'channels';
+const REMOVED_CURRENT_CHANNEL_KEY = 'removedCurrentChannel';
+
 const url = (name: string) => `${environment.STATS_URL}/channels/${name}`;
 
 export const formatStreamDuration = (duration: number) =>
@@ -68,8 +71,6 @@ export class StreamStatService {
     streams: [],
   };
 
-  openedChannels: string[] = [];
-
   channels: {
     online: string[];
     offline: string[];
@@ -112,37 +113,65 @@ export class StreamStatService {
   setChannel(channel: string) {
     this.channel = channel;
 
-    if (this.channel) {
-      this.openedChannels.push(this.channel);
-
-      let openedChannelsJson = localStorage.getItem('channels');
-
-      try {
-        if (openedChannelsJson) {
-          this.openedChannels = [
-            ...this.openedChannels,
-            ...JSON.parse(openedChannelsJson),
-          ];
-        }
-      } catch (error) {}
-
-      this.openedChannels = _.uniq(this.openedChannels);
-
-      localStorage.setItem('channels', JSON.stringify(this.openedChannels));
+    const removedChannel = sessionStorage.getItem(REMOVED_CURRENT_CHANNEL_KEY);
+    if (channel && channel !== removedChannel) {
+      sessionStorage.removeItem(REMOVED_CURRENT_CHANNEL_KEY);
+      const channels = this.readSavedChannels();
+      if (!channels.includes(channel)) {
+        localStorage.setItem(
+          SAVED_CHANNELS_KEY,
+          JSON.stringify([channel, ...channels]),
+        );
+      }
     }
 
     this.fetchStats(this.channel);
     this.fetchChannels();
   }
 
+  removeChannel(channel: string) {
+    const remaining = this.readSavedChannels().filter(
+      (name) => name !== channel,
+    );
+    localStorage.setItem(SAVED_CHANNELS_KEY, JSON.stringify(remaining));
+    if (channel === this.channel) {
+      sessionStorage.setItem(REMOVED_CURRENT_CHANNEL_KEY, channel);
+    }
+
+    this.channels = {
+      ...this.channels,
+      online: this.channels.online.filter((name) => name !== channel),
+      offline: this.channels.offline.filter((name) => name !== channel),
+    };
+    this.onlineChannels.next(this.channels);
+  }
+
+  private readSavedChannels(): string[] {
+    try {
+      const channels = JSON.parse(
+        localStorage.getItem(SAVED_CHANNELS_KEY) || '[]',
+      );
+      return Array.isArray(channels)
+        ? [
+            ...new Set<string>(
+              channels.filter((name) => typeof name === 'string'),
+            ),
+          ]
+        : [];
+    } catch {
+      return [];
+    }
+  }
+
   async fetchChannels() {
+    const channel = this.channel;
     const onlineChannels: string[] = [];
     const offlineChannels: string[] = [];
 
     const qualityOnline: QualityEntry[] = [];
     const qualityOffline: QualityEntry[] = [];
 
-    for (const channelName of this.openedChannels) {
+    for (const channelName of this.readSavedChannels()) {
       try {
         const {
           data: { streams },
@@ -158,13 +187,10 @@ export class StreamStatService {
       }
     }
 
-    this.channels.online = onlineChannels;
-    this.channels.offline = offlineChannels;
-
     try {
       const {
         data: { streams },
-      } = await axios.get<Stats>(url(this.channel));
+      } = await axios.get<Stats>(url(channel));
 
       for (const stream of streams) {
         if (
@@ -179,7 +205,7 @@ export class StreamStatService {
 
         const qualityEntry = {
           label,
-          path: `${this.channel}/${stream.protocol}/${stream.app}`,
+          path: `${channel}/${stream.protocol}/${stream.app}`,
         };
 
         if (!_.find(qualityOnline, { label })) {
@@ -188,9 +214,16 @@ export class StreamStatService {
       }
     } catch (error) {}
 
-    this.channels.qualityOnline = qualityOnline;
-    this.channels.qualityOffline = qualityOffline;
-
+    if (channel !== this.channel) {
+      return;
+    }
+    const saved = new Set(this.readSavedChannels());
+    this.channels = {
+      online: onlineChannels.filter((name) => saved.has(name)),
+      offline: offlineChannels.filter((name) => saved.has(name)),
+      qualityOnline,
+      qualityOffline,
+    };
     this.onlineChannels.next(this.channels);
   }
 

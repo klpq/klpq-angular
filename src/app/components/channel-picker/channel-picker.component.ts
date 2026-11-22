@@ -28,6 +28,11 @@ export class ChannelPickerComponent {
     private host: ElementRef<HTMLElement>,
   ) {}
 
+  removeChannel(channel: string) {
+    this.stats.removeChannel(channel);
+    this.channelButton.nativeElement.focus();
+  }
+
   toggleMenu(menu: 'channels' | 'quality') {
     this.openMenu = this.openMenu === menu ? null : menu;
   }
@@ -36,7 +41,7 @@ export class ChannelPickerComponent {
   closeOutside(event: MouseEvent) {
     if (
       this.openMenu &&
-      !this.host.nativeElement.contains(event.target as Node)
+      !event.composedPath().includes(this.host.nativeElement)
     ) {
       this.openMenu = null;
     }
