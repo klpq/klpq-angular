@@ -1,89 +1,77 @@
-<!--
-<div ngDropdown [renderInPlace]="true" [horizontalPosition]="'center'">
-  <button class="live-btn" ngDropdownControl>Change Channel</button>
-  <div ngDropdownContent dropdownClass="slide-fade dropper">
-    <div *ngIf="!isLoading" class="channel-list">
-      <div class="channel-item online" *ngFor="let channel of online">
-        <a routerLink="/{{ channel }}" class="channel-link"
-          >{{ channel }}
-      </div>
+<ng-container *ngIf="channels$ | async as channels">
+  <div class="picker">
+    <button
+      #channelButton
+      type="button"
+      [attr.aria-expanded]="openMenu === 'channels'"
+      aria-controls="channel-options"
+      (click)="toggleMenu('channels')"
+    >
+      Channels
+    </button>
 
-    </div>
-  </div>
-</div> -->
-
-<!-- Using ng-option and for loop
-<ng-select [(ngModel)]="selectedChannel" class="select">
-  <ng-option  [value]="channel">{{channel}}
-
-  </ng-option>
-      <ng-option *ngFor="let channel of offline" [value]="channel">
-
-      </ng-option>
-</ng-select> -->
-
-<div class="content">
-  <div
-    #toggleButtonQuality
-    [class.active]="isMenuOpenQuality"
-    [class.disabled]="!hasQualityChannels"
-    [attr.aria-disabled]="!hasQualityChannels"
-    class="live-btn"
-    (click)="toggleMenuQuality()"
-  >
-    Quality
-  </div>
-  <div
-    #menuQuality
-    class="dropdown-content slide-fade"
-    [class.isOpen]="isMenuOpenQuality"
-  >
-    <div *ngIf="!isLoading" class="channel-list">
-      <div class="channel-item online" *ngFor="let channel of qualityLive">
-        <a routerLink="/{{ channel.path }}" class="channel-link"
-          ><span class="channel-name">{{ channel.label }}</span>
-          <span class="live-status">LIVE</span>
-        </a>
-      </div>
-    </div>
-    <div *ngIf="!isLoading" class="channel-list">
-      <div class="channel-item offline" *ngFor="let channel of qualityOffline">
-        <a routerLink="/{{ channel.path }}" class="channel-link"
-          ><span class="channel-name">{{ channel.label }}</span></a
+    <div
+      id="channel-options"
+      class="options"
+      [hidden]="openMenu !== 'channels'"
+    >
+      <p *ngIf="!channels.online.length && !channels.offline.length">
+        Loading channels…
+      </p>
+      <ng-container
+        *ngFor="
+          let group of [channels.online, channels.offline];
+          let live = first
+        "
+      >
+        <a
+          *ngFor="let name of group"
+          [routerLink]="['/', name]"
+          [attr.aria-current]="channel === name ? 'true' : null"
+          (click)="openMenu = null"
         >
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="content">
-  <div
-    #toggleButton
-    [class.active]="isMenuOpen"
-    class="live-btn"
-    (click)="toggleMenu()"
-  >
-    Channels
-  </div>
-  <div #menu class="dropdown-content slide-fade" [class.isOpen]="isMenuOpen">
-    <div *ngIf="!isLoading" class="channel-list">
-      <div class="channel-item online" *ngFor="let channel of online">
-        <a routerLink="/{{ channel }}" class="channel-link"
-          ><span class="channel-name">{{ channel }}</span>
-          <span class="live-status">LIVE</span>
+          <span>{{ name }}</span>
+          <small *ngIf="live">Live</small>
         </a>
-      </div>
-    </div>
-    <div *ngIf="!isLoading" class="channel-list">
-      <div class="channel-item offline" *ngFor="let channel of offline">
-        <a routerLink="/{{ channel }}" class="channel-link"
-          ><span class="channel-name">{{ channel }}</span></a
-        >
-      </div>
+      </ng-container>
     </div>
   </div>
-</div>
 
-<span class="live-channels" title="Live Channels"
-  ><i class="tower-icon fas fa-signal"></i> {{ online.length || 0 }}
-</span>
+  <div class="picker">
+    <button
+      #qualityButton
+      type="button"
+      [attr.aria-expanded]="openMenu === 'quality'"
+      aria-controls="quality-options"
+      (click)="toggleMenu('quality')"
+    >
+      Quality
+    </button>
+
+    <div id="quality-options" class="options" [hidden]="openMenu !== 'quality'">
+      <p
+        *ngIf="
+          !channels.qualityOnline.length && !channels.qualityOffline.length
+        "
+      >
+        No quality options available
+      </p>
+      <ng-container
+        *ngFor="
+          let group of [channels.qualityOnline, channels.qualityOffline];
+          let live = first
+        "
+      >
+        <a
+          *ngFor="let quality of group"
+          [routerLink]="'/' + quality.path"
+          [attr.aria-current]="quality.path === selectedQuality ? 'true' : null"
+          (click)="openMenu = null"
+        >
+          <span>{{ quality.label }}</span>
+          <small *ngIf="live">Live</small>
+        </a>
+      </ng-container>
+    </div>
+  </div>
+</ng-container>

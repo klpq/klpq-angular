@@ -1,127 +1,200 @@
-.container {
-  background-color: #030712;
-  display: flex;
-  flex-direction: column;
-  color: white;
-  width: 100%;
+:host {
+  --stream-bg: #0d0e11;
+  --stream-surface: #16181d;
+  --stream-border: #292c34;
+  --stream-text: #f1f2f4;
+  --stream-muted: #a5aab4;
+  --stream-accent: #63e5af;
+  display: block;
   height: 100%;
+  color-scheme: dark;
 }
 
-.navigation {
-  display: grid;
-  grid: 1fr / 1fr 2fr 1fr;
-  grid-template-areas: 'back title switch';
-  gap: 2em;
-  background-color: #18181b;
-  padding: 0.5em;
-  align-items: center;
-  .back-link {
-    grid-area: back;
-    padding-left: 0.25em;
-    justify-self: start;
-  }
-  .back-img {
-    height: 32px;
-    cursor: pointer;
-  }
-  .channel-name {
-    grid-area: title;
-    text-align: center;
-    text-transform: uppercase;
-  }
-
-  .channel-switch-wrap {
-    grid-area: switch;
-    display: flex;
-    justify-content: end;
-  }
+.stream-page {
+  height: 100%;
+  overflow: auto;
+  background: var(--stream-bg);
+  color: var(--stream-text);
 }
 
-.main-area {
-  margin-top: 0;
-  gap: 1em;
-  flex-grow: 1;
-  display: flex;
-  height: calc(100% - 100px);
-  align-items: stretch;
-  padding: 1%;
+.stream-header {
+  border-bottom: 1px solid var(--stream-border);
+}
+
+.header-inner,
+.watch-area {
   box-sizing: border-box;
-  background: #18181b;
-
-  .player-section {
-    background-color: #18181b;
-    width: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    &.full {
-      flex-grow: 1;
-    }
-    #player {
-      width: 100%;
-      max-width: 1200px;
-      height: auto;
-      aspect-ratio: 16 / 9;
-      border-radius: 8px;
-      background: #000;
-      object-fit: contain;
-      display: block;
-      background-color: #000;
-    }
-  }
-
-  .chat-section {
-    background-color: white;
-    flex-basis: 30%;
-  }
+  max-width: 1240px;
+  margin: 0 auto;
+  padding-inline: clamp(0.75rem, 3.5vw, 2rem);
 }
 
-.footer {
-  background-color: #18181b;
-  margin-top: 0;
-  .stats {
-    display: flex;
-    gap: 1em;
-  }
-  .under-chat-section {
-    display: flex;
-    gap: 1em;
-  }
-  .expand-chat {
-    color: white;
-    text-transform: none;
-    text-decoration: none;
-    cursor: pointer;
-  }
-  padding: 0.5em 1em;
+.header-inner,
+.channel-toolbar,
+.channel-heading,
+.stat {
   display: flex;
   align-items: center;
+}
+
+.header-inner {
+  min-height: 68px;
+  gap: 1rem;
   justify-content: space-between;
 }
 
-@media (max-width: 768px) {
-  .navigation {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 0.75em 1.25em;
+.home-link {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  flex: none;
+  border-radius: 8px;
+
+  &:hover {
+    background: var(--stream-surface);
+  }
+}
+
+.home-link:focus-visible {
+  outline: 2px solid var(--stream-accent);
+  outline-offset: 3px;
+}
+
+.channel-toolbar {
+  margin-inline-start: auto;
+  gap: clamp(0.75rem, 3vw, 1.75rem);
+  min-width: 0;
+}
+
+.channel-heading {
+  gap: 0.65rem;
+  min-width: 0;
+}
+
+h1 {
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+.live-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.38rem;
+  color: var(--stream-accent);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  white-space: nowrap;
+
+  &::before {
+    content: '';
+    width: 0.42rem;
+    height: 0.42rem;
+    border-radius: 50%;
+    background: currentColor;
+  }
+}
+
+.watch-area {
+  padding-block: clamp(0.75rem, 3.3vw, 2rem) 2rem;
+}
+
+.player-frame {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  border: 1px solid var(--stream-border);
+  border-radius: 12px;
+  overflow: hidden;
+  background: #050506;
+}
+
+.player-section {
+  position: absolute;
+  inset: 0;
+}
+
+.player-status {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 1rem 1rem 2.5rem;
+  pointer-events: none;
+  text-align: center;
+}
+
+.status-content {
+  max-width: 28rem;
+
+  i {
+    color: var(--stream-muted);
+    font-size: 1.25rem;
   }
 
-  .navigation .channel-name {
-    order: 1;
-    flex: 1 1 auto;
-    text-align: center;
+  p {
+    margin: 0.65rem 0 0.25rem;
+    font-size: clamp(1rem, 2vw, 1.25rem);
+    font-weight: 600;
+  }
+
+  span {
+    color: var(--stream-muted);
+    font-size: 0.875rem;
+  }
+}
+
+.stream-info {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.6rem 1.4rem;
+  padding: 0.9rem 0;
+  border-bottom: 1px solid var(--stream-border);
+  font-size: 0.875rem;
+}
+
+.stat {
+  gap: 0.5rem;
+  color: var(--stream-muted);
+
+  strong {
+    color: var(--stream-text);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+@media (max-width: 520px) {
+  .header-inner {
+    min-height: 60px;
+    flex-wrap: wrap;
+    gap: 0.25rem 0.5rem;
+  }
+
+  .channel-toolbar {
+    flex: 1;
+    justify-content: flex-end;
+    gap: 0.6rem;
+  }
+
+  .channel-heading {
+    gap: 0.35rem;
+  }
+
+  h1 {
     font-size: 1rem;
   }
 
-  .navigation .channel-switch-wrap {
-    order: 2;
-    justify-content: center;
-    gap: 0.75em;
-    width: 100%;
+  .player-frame {
+    border-radius: 8px;
   }
 
-  .navigation .back-link {
-    order: 0;
+  .stream-info {
+    gap: 0.25rem 0.75rem;
   }
 }

@@ -1,16 +1,36 @@
-.live-btn {
-  width: 90%;
-  padding: 0.25em;
-  background: #064e3b;
-  text-align: center;
-  outline: none;
-  border-color: transparent;
-  cursor: pointer;
-  color: #ffffff;
-  font-weight: bold;
+:host {
+  position: relative;
+  display: flex;
+  flex: none;
+  gap: 0.45rem;
+}
 
-  &.active {
-    background: #047857;
+button {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  min-height: 38px;
+  padding: 0 0.7rem;
+  border: 1px solid var(--stream-border);
+  border-radius: 7px;
+  background: var(--stream-surface);
+  color: var(--stream-text);
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 500;
+
+  &::after {
+    content: '';
+    width: 0.32rem;
+    height: 0.32rem;
+    border-right: 1px solid var(--stream-muted);
+    border-bottom: 1px solid var(--stream-muted);
+    transform: rotate(45deg) translateY(-2px);
+  }
+
+  &:hover,
+  &[aria-expanded='true'] {
+    border-color: var(--stream-muted);
   }
 
   &.disabled {
@@ -19,125 +39,70 @@
   }
 }
 
-.channel-list {
-  max-height: 300px;
-  overflow-y: hidden;
+button:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--stream-accent);
+  outline-offset: 2px;
 }
 
-.live-channels {
-  color: white !important;
-  justify-self: right;
-  font-weight: bold;
-  display: flex;
-  font-size: 12px;
-  align-items: center;
-  background-color: #770c06;
-  padding: 0.5em;
-  border-radius: 5px;
-  .tower-icon {
-    font-size: 12px;
-    margin-right: 2px;
-  }
-}
-
-.channel-item {
-  display: flex;
-  align-items: center;
-  padding: 0.35em 0;
-
-  &:hover {
-    background-color: #dddddd;
-  }
-
-  .live-status {
-    background-color: darkred;
-    color: white;
-    text-transform: uppercase;
-    font-weight: bold;
-    padding: 2px 5px;
-    font-size: 12px;
-    border-radius: 5px;
-    white-space: nowrap;
-    flex-shrink: 0;
-  }
-
-  &.offline {
-    .channel-link {
-      color: #4d4d4d;
-    }
-  }
-
-  &.online {
-    .channel-link {
-      color: darkred;
-    }
-  }
-
-  .channel-link {
-    padding: 0px 5px;
-    text-decoration: none;
-    font-weight: bold;
-    display: grid;
-    grid-template-columns: 1fr auto;
-    gap: 0.35em;
-    align-items: center;
-    width: 100%;
-    max-width: 100%;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-
-    .channel-name {
-      min-width: 0;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-  }
-}
-.select {
-  width: 100%;
-}
-
-.content {
-  position: relative;
-  width: 100%;
-  margin: 0.25em 0;
-}
-
-.dropdown {
-  position: relative;
-  display: inline-block;
-  width: 100%;
-  flex-basis: 50%;
-}
-
-.dropdown-content {
-  display: none;
+.options {
   position: absolute;
-  background-color: #f9f9f9;
-  min-width: 100%;
+  z-index: 2;
+  inset-inline-end: 0;
+  top: calc(100% + 0.5rem);
   width: max-content;
-  max-width: calc(100vw - 1.25rem);
-  padding: 0.25em;
-  box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
-  z-index: 1;
+  min-width: 11rem;
+  max-width: calc(100vw - 1.5rem);
+  max-height: min(18rem, 60vh);
   box-sizing: border-box;
-  overflow-x: hidden;
-}
+  overflow: auto;
+  padding: 0.35rem;
+  border: 1px solid var(--stream-border);
+  border-radius: 9px;
+  background: var(--stream-surface);
+  box-shadow: 0 12px 28px #0006;
 
-.dropdown-content.isOpen {
-  display: block;
-}
-
-@media (min-width: 768px) {
-  .content {
-    width: 75%;
-    margin: 0 0.5em;
+  p {
+    margin: 0;
+    padding: 0.55rem;
+    color: var(--stream-muted);
+    font-size: 0.875rem;
   }
 
-  .dropdown-content {
-    min-width: 90%;
-    max-width: min(90vw, 520px);
+  a {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem 0.65rem;
+    border-radius: 5px;
+    color: var(--stream-text);
+    text-decoration: none;
+    font-size: 0.875rem;
+
+    span {
+      overflow-wrap: anywhere;
+    }
+
+    &:hover,
+    &[aria-current='true'] {
+      background: var(--stream-bg);
+    }
+
+    &[aria-current='true'],
+    small {
+      color: var(--stream-accent);
+    }
+  }
+}
+
+@media (max-width: 520px) {
+  :host {
+    gap: 0.3rem;
+  }
+
+  button {
+    gap: 0.35rem;
+    padding-inline: 0.5rem;
   }
 }

@@ -1,0 +1,59 @@
+name: Deploy to Azure Static Web Apps
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: azure-static-web-app-production
+
+jobs:
+  deploy:
+    name: Deploy ${{ matrix.page }}
+    if: github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - page: www
+            token_secret: AZURE_STATIC_WEB_APPS_WWW_API_TOKEN
+          - page: stream
+            token_secret: AZURE_STATIC_WEB_APPS_STREAM_API_TOKEN
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: yarn
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile --non-interactive
+
+      - name: Build Angular
+        run: yarn build
+        env:
+          NODE_ENV: production
+          STATS_URL: ${{ vars.STATS_URL || 'https://stats-api.klpq.io/v1' }}
+          CURRENT_PAGE: ${{ matrix.page }}
+          STREAM_PAGE_REDIRECT_URL: ${{ vars.STREAM_PAGE_REDIRECT_URL || 'https://stream.klpq.io' }}
+          MAIN_PAGE_URL: ${{ vars.MAIN_PAGE_URL || 'https://klpq.io' }}
+
+      - name: Deploy static files
+        uses: Azure/static-web-apps-deploy@v1
+        with:
+          azure_static_web_apps_api_token: ${{ secrets[matrix.token_secret] }}
+          action: upload
+          app_location: dist
+          output_location: ''
+          skip_app_build: true

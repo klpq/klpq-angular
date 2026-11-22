@@ -5,7 +5,18 @@ import Mpegts from 'mpegts.js';
 import { ProtocolsEnum } from '../streamstat.service';
 
 function isIOS() {
-  return /iPad|iPhone|iPod/.test(navigator.userAgent);
+  return (
+    [
+      'iPad Simulator',
+      'iPhone Simulator',
+      'iPod Simulator',
+      'iPad',
+      'iPhone',
+      'iPod',
+    ].includes(navigator.platform) ||
+    // iPad on iOS 13 detection
+    (navigator.userAgent.includes('Mac') && 'ontouchend' in document)
+  );
 }
 
 function isAndroid() {
@@ -14,60 +25,31 @@ function isAndroid() {
 
 export async function createPlayer(
   edgeUrl: string,
+  protocol: ProtocolsEnum,
   videoElement: HTMLMediaElement,
+  onError: () => void,
 ): Promise<() => void> {
-  let protocol: ProtocolsEnum;
-
-  const ext = new URL(edgeUrl, location.href).pathname.split('.').pop();
-
-  switch (ext) {
-    case 'flv':
-      protocol = ProtocolsEnum.FLV;
-
-      break;
-    case 'hls':
-      protocol = ProtocolsEnum.HLS;
-
-      break;
-    case 'm3u8':
-      protocol = ProtocolsEnum.MPD;
-
-      break;
+  switch (protocol) {
+    case ProtocolsEnum.FLV:
+      return createWssPlayer(videoElement, edgeUrl, onError);
+    case ProtocolsEnum.HLS:
+      return isIOS()
+        ? createNativePlayer(videoElement, edgeUrl)
+        : createHlsPlayer(videoElement, edgeUrl, onError);
+    case ProtocolsEnum.MPD:
+      return isAndroid()
+        ? createNativePlayer(videoElement, edgeUrl)
+        : createMpdPlayer(videoElement, edgeUrl, onError);
     default:
-      break;
+      return createNativePlayer(videoElement, edgeUrl);
   }
-
-  let stopPlaybackFnc = () => null;
-
-  switch (ext) {
-    case ProtocolsEnum.FLV: {
-      stopPlaybackFnc = createWssPlayer(videoElement, edgeUrl);
-
-      break;
-    }
-    default: {
-      if (isIOS) {
-        stopPlaybackFnc = createHlsPlayer(videoElement, edgeUrl);
-
-        break;
-      }
-
-      if (isAndroid()) {
-        stopPlaybackFnc = createMpdPlayer(videoElement, edgeUrl);
-
-        break;
-      }
-
-      stopPlaybackFnc = createNativePlayer(videoElement, edgeUrl);
-
-      break;
-    }
-  }
-
-  return stopPlaybackFnc;
 }
 
-function createWssPlayer(videoElement: HTMLMediaElement, url: string) {
+function createWssPlayer(
+  videoElement: HTMLMediaElement,
+  url: string,
+  onError: () => void,
+) {
   console.log('createWssPlayer', url);
 
   const player = Mpegts.createPlayer({
@@ -76,6 +58,7 @@ function createWssPlayer(videoElement: HTMLMediaElement, url: string) {
     cors: true,
     isLive: true,
   });
+  player.on(Mpegts.Events.ERROR, onError);
   player.attachMediaElement(videoElement);
   player.load();
 
@@ -86,16 +69,19 @@ function createWssPlayer(videoElement: HTMLMediaElement, url: string) {
   return () => {
     console.log('stop wss player');
 
-    player.pause();
-    player.unload();
-    player.detachMediaElement();
+    player.destroy();
   };
 }
 
-function createMpdPlayer(videoElement: HTMLMediaElement, url: string) {
+function createMpdPlayer(
+  videoElement: HTMLMediaElement,
+  url: string,
+  onError: () => void,
+) {
   console.log('createMpdPlayer', url);
 
   const player = dashjs.MediaPlayer().create();
+  player.on(dashjs.MediaPlayer.events.ERROR, onError);
   player.initialize(videoElement, url, true);
   player.play();
 
@@ -107,10 +93,19 @@ function createMpdPlayer(videoElement: HTMLMediaElement, url: string) {
   };
 }
 
-function createHlsPlayer(videoElement: HTMLMediaElement, url: string) {
+function createHlsPlayer(
+  videoElement: HTMLMediaElement,
+  url: string,
+  onError: () => void,
+) {
   console.log('createHlsPlayer', url);
 
   const player = new Hls();
+  player.on(Hls.Events.ERROR, (_, error) => {
+    if (error.fatal) {
+      onError();
+    }
+  });
 
   player.on(Hls.Events.MEDIA_ATTACHED, () => {
     videoElement.muted = false;

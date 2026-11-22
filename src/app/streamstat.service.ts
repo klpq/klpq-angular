@@ -10,7 +10,7 @@ import axios from 'axios';
 
 const url = (name: string) => `${environment.STATS_URL}/channels/${name}`;
 
-const fixTime = (duration: number) =>
+export const formatStreamDuration = (duration: number) =>
   humanizeDuration(duration * 1000, {
     round: true,
     largest: 2,
@@ -207,15 +207,15 @@ export class StreamStatService {
       })
       .pipe();
 
-    source.subscribe((data) => {
-      this.stats = {
-        channel,
-        ...data,
-      };
-      this.statsSubject.next({
-        channel,
-        ...data,
-      });
+    source.subscribe({
+      next: (data) => {
+        if (channel === this.channel) {
+          this.stats = { channel, ...data };
+          this.statsSubject.next(this.stats);
+        }
+      },
+      error: (error) =>
+        console.error('Could not load stream statistics', error),
     });
   }
 }

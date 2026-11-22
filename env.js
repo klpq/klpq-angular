@@ -6,7 +6,6 @@ dotenv.config({ path: path.join(process.cwd(), '.env') });
 
 const env = {
   NODE_ENV: process.env.NODE_ENV,
-  CHAT_URL: process.env.CHAT_URL,
   STATS_URL: process.env.STATS_URL,
   CURRENT_PAGE: process.env.CURRENT_PAGE,
   STREAM_PAGE_REDIRECT_URL: process.env.STREAM_PAGE_REDIRECT_URL,

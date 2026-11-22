@@ -1,103 +1,55 @@
 import {
   Component,
   ElementRef,
-  OnInit,
-  Renderer2,
+  HostListener,
+  Input,
   ViewChild,
 } from '@angular/core';
-import { QualityEntry, StreamStatService } from '../../streamstat.service';
+import { StreamStatService } from '../../streamstat.service';
 
 @Component({
   selector: 'app-channel-picker',
   templateUrl: './channel-picker.component.html',
   styleUrls: ['./channel-picker.component.scss'],
 })
-export class ChannelPickerComponent implements OnInit {
-  online: string[];
-  offline: string[];
+export class ChannelPickerComponent {
+  @Input() channel = '';
+  @Input() selectedQuality = '';
+  @ViewChild('channelButton')
+  private channelButton: ElementRef<HTMLButtonElement>;
+  @ViewChild('qualityButton')
+  private qualityButton: ElementRef<HTMLButtonElement>;
 
-  qualityLive: QualityEntry[];
-  qualityOffline: QualityEntry[];
+  openMenu: 'channels' | 'quality' | null = null;
+  readonly channels$ = this.stats.onlineChannels;
 
-  isLoading = true;
+  constructor(
+    private stats: StreamStatService,
+    private host: ElementRef<HTMLElement>,
+  ) {}
 
-  @ViewChild('toggleButton') toggleButton: ElementRef;
-  @ViewChild('toggleButtonQuality') toggleButtonQuality: ElementRef;
-
-  @ViewChild('menu') menu: ElementRef;
-  @ViewChild('menuQuality') menuQuality: ElementRef;
-
-  isMenuOpen = false;
-  isMenuOpenQuality = false;
-
-  get hasQualityChannels(): boolean {
-    return (
-      (this.qualityLive?.length || 0) > 0 ||
-      (this.qualityOffline?.length || 0) > 0
-    );
+  toggleMenu(menu: 'channels' | 'quality') {
+    this.openMenu = this.openMenu === menu ? null : menu;
   }
 
-  constructor(private stats: StreamStatService, private renderer: Renderer2) {
-    this.renderer.listen('window', 'click', (e: Event) => {
-      /**
-       * Only run when toggleButton is not clicked
-       * If we don't check this, all clicks (even on the toggle button) gets into this
-       * section which in the result we might never see the menu open!
-       * And the menu itself is checked here, and it's where we check just outside of
-       * the menu and button the condition above must close the menu
-       */
-      if (
-        !this.toggleButton.nativeElement.contains(e.target) &&
-        !this.menu.nativeElement.contains(e.target)
-      ) {
-        this.isMenuOpen = false;
-      }
-    });
-
-    this.renderer.listen('window', 'click', (e: Event) => {
-      /**
-       * Only run when toggleButton is not clicked
-       * If we don't check this, all clicks (even on the toggle button) gets into this
-       * section which in the result we might never see the menu open!
-       * And the menu itself is checked here, and it's where we check just outside of
-       * the menu and button the condition above must close the menu
-       */
-      if (
-        this.toggleButtonQuality &&
-        this.menuQuality &&
-        !this.toggleButtonQuality.nativeElement.contains(e.target) &&
-        !this.menuQuality.nativeElement.contains(e.target)
-      ) {
-        this.isMenuOpenQuality = false;
-      }
-    });
-  }
-
-  ngOnInit() {
-    this.stats.onlineChannels.subscribe((channels) => {
-      this.online = channels.online;
-      this.offline = channels.offline;
-
-      this.qualityLive = channels.qualityOnline;
-      this.qualityOffline = channels.qualityOffline;
-
-      this.isLoading = false;
-    });
-  }
-
-  ngOnDestroy() {
-    this.isMenuOpen = false;
-    this.isMenuOpenQuality = false;
-  }
-
-  toggleMenu() {
-    this.isMenuOpen = !this.isMenuOpen;
-  }
-
-  toggleMenuQuality() {
-    if (!this.hasQualityChannels) {
-      return;
+  @HostListener('document:click', ['$event'])
+  closeOutside(event: MouseEvent) {
+    if (
+      this.openMenu &&
+      !this.host.nativeElement.contains(event.target as Node)
+    ) {
+      this.openMenu = null;
     }
-    this.isMenuOpenQuality = !this.isMenuOpenQuality;
+  }
+
+  @HostListener('keydown.escape', ['$event'])
+  closeWithEscape(event: KeyboardEvent) {
+    if (this.openMenu) {
+      const button =
+        this.openMenu === 'channels' ? this.channelButton : this.qualityButton;
+      this.openMenu = null;
+      button.nativeElement.focus();
+      event.preventDefault();
+    }
   }
 }

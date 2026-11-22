@@ -1,12 +1,40 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
-import { ActivatedRoute, Params, Router } from '@angular/router';
-import { ProtocolsEnum, StreamStatService, Stats } from '../streamstat.service';
-import { createPlayer } from '../utils/channels';
-import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
-import * as _ from 'lodash';
-
-import environment from '../../environment';
+import {
+  Component,
+  ElementRef,
+  OnDestroy,
+  OnInit,
+  ViewChild,
+} from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
+import environment from '../../environment';
+import {
+  formatStreamDuration,
+  ProtocolsEnum,
+  StreamStatService,
+} from '../streamstat.service';
+import { createPlayer } from '../utils/channels';
+
+const VOLUME_STORAGE_KEY = 'streamVolume';
+const MIN_SAVED_VOLUME = 0.1;
+
+const PLAYER_MESSAGES = {
+  loading: {
+    icon: 'fa-circle-notch',
+    title: 'Loading stream',
+    description: 'Connecting to the live feed.',
+  },
+  offline: {
+    icon: 'fa-broadcast-tower',
+    title: 'Channel offline',
+    description: 'This channel is currently off air.',
+  },
+  unavailable: {
+    icon: 'fa-exclamation-circle',
+    title: 'Stream unavailable',
+    description: 'The live feed could not be loaded.',
+  },
+};
 
 @Component({
   selector: 'app-stream-page',
@@ -14,211 +42,184 @@ import { Subscription } from 'rxjs';
   styleUrls: ['./stream-page.component.scss'],
 })
 export class StreamPageComponent implements OnInit, OnDestroy {
-  channel: string;
-  protocol: ProtocolsEnum;
-  app: string;
-  edgeUrl: string;
-
-  showChat = false;
-
+  stream = 'main';
+  selectedQuality = '';
+  showNavigation = true;
+  homeUrl = environment.MAIN_PAGE_URL;
   stats: {
-    isLive: boolean;
-    viewers: number;
-    bitrate: number;
-    duration: number;
-    startTime: Date;
-  } = null;
+    isLive?: boolean;
+    viewers?: number;
+    duration?: string;
+    bitrate?: number;
+  } = {};
+  playerState: 'loading' | 'ready' | 'unavailable' = 'loading';
 
-  playerInit = false;
-  chatUrl: SafeResourceUrl;
-  loginUrl: SafeResourceUrl;
+  @ViewChild('playerContainer', { static: true })
+  private playerContainer: ElementRef<HTMLDivElement>;
 
-  stopFnc: (() => void) | null = null;
-
-  paramsSubscription = null;
-  subscription: Subscription | null = null;
-
-  gotFirstStats = false;
+  private edgeUrl: string | null = null;
+  private stopPlayer: (() => void) | null = null;
+  private playerVideo: HTMLVideoElement | null = null;
+  private subscriptions = new Subscription();
 
   constructor(
     private router: Router,
     private route: ActivatedRoute,
     private streamStats: StreamStatService,
-    private sanitizer: DomSanitizer,
   ) {}
 
+  get playerMessage() {
+    if (this.playerState === 'ready') {
+      return null;
+    }
+    return PLAYER_MESSAGES[
+      this.stats.isLive === false ? 'offline' : this.playerState
+    ];
+  }
+
   ngOnInit() {
-    console.log('ngOnInit');
+    this.subscriptions.add(
+      this.route.params.subscribe((params) => {
+        this.stream = params.channel || params.stream || 'main';
+        this.stats = {};
+        this.selectedQuality = '';
+        this.edgeUrl = null;
+        this.clearPlayer();
+        this.playerState = 'loading';
 
-    this.showChat = localStorage.getItem('showChat') === 'true';
+        this.streamStats.setChannel(this.stream);
+      }),
+    );
 
-    this.route.params.subscribe((params) => {
-      console.log('params', params);
+    this.subscriptions.add(
+      this.streamStats.statsSubject.subscribe(({ channel, streams }) => {
+        if (channel !== this.stream) {
+          return;
+        }
 
-      this.channel = params.channel || 'main';
-      this.protocol = params.protocol || ProtocolsEnum.FLV;
-      this.app = params.app;
-      this.edgeUrl = null;
-
-      this.streamStats.setChannel(this.channel);
-
-      this.playerInit = false;
-
-      this.gotFirstStats = false;
-
-      this.initPlayer();
-      this.getChatUrl();
-      this.getLoginUrl();
-    });
-
-    this.subscription = this.streamStats.statsSubject.subscribe(
-      ({ streams, channel }) => {
-        console.log(
-          'streamStats',
-          this.channel,
-          this.gotFirstStats,
-          streams,
-          channel,
-          this.channel,
+        const { app, protocol = ProtocolsEnum.FLV } =
+          this.route.snapshot.params;
+        const stream = streams.find(
+          (entry) =>
+            entry.protocol === protocol &&
+            (!app || entry.app === app) &&
+            entry.urls?.edge,
         );
-
-        if (channel !== this.channel) {
-          return;
-        }
-
-        console.log(this.channel, this.protocol, this.app, this.edgeUrl);
-
-        let viewers = 0;
-
-        streams.forEach((s) => {
-          viewers += s.viewers;
-        });
-
-        const stream = _.find(streams, (s) => {
-          const conditions: boolean[] = [s.protocol === this.protocol];
-
-          if (this.app) {
-            conditions.push(s.app === this.app);
-          }
-
-          return _.every(conditions);
-        });
-
         if (!stream) {
+          this.stats = { isLive: false };
+          this.selectedQuality = '';
           return;
         }
-
-        console.log('streamStats', stream);
-
-        this.protocol = stream.protocol;
-        this.app = stream.app;
-        this.edgeUrl = stream.urls.edge;
 
         this.stats = {
           isLive: true,
-          viewers,
+          viewers: streams.reduce((total, entry) => total + entry.viewers, 0),
           bitrate: stream.bitrate,
-          duration: stream.duration,
-          startTime: new Date(stream.startTime),
+          duration: formatStreamDuration(stream.duration),
         };
-
-        if (this.gotFirstStats) {
-          return;
+        this.selectedQuality = `${channel}/${stream.protocol}/${stream.app}`;
+        if (!this.edgeUrl) {
+          this.edgeUrl = stream.urls.edge;
+          this.initPlayer(this.edgeUrl, stream.protocol);
         }
-
-        this.gotFirstStats = true;
-
-        this.initPlayer();
-      },
+      }),
     );
 
-    this.route.queryParams.subscribe((query) => {
-      console.log('query', query);
+    this.subscriptions.add(
+      this.route.queryParams.subscribe((query) => {
+        if (query.token) {
+          localStorage.setItem('token', query.token);
 
-      if (query.token) {
-        localStorage.setItem('token', query.token);
-
-        this.router.navigate(['/'], {
-          queryParams: {},
-        });
-      }
-    });
+          this.router.navigate(['/'], {
+            queryParams: {},
+          });
+        }
+      }),
+    );
   }
 
   ngOnDestroy() {
-    console.log('ngOnDestroy');
-
-    if (this.stopFnc) {
-      this.stopFnc();
-
-      this.stopFnc = null;
-    }
+    this.subscriptions.unsubscribe();
+    this.clearPlayer();
   }
 
-  toggleChat() {
-    this.showChat = !this.showChat;
-    localStorage.setItem('showChat', String(this.showChat));
+  private clearPlayer() {
+    this.playerVideo = null;
+    this.stopPlayer?.();
+    this.stopPlayer = null;
+    this.playerContainer.nativeElement.replaceChildren();
   }
 
-  redirectHome() {
-    console.log(environment.MAIN_PAGE_URL);
-
-    window.location.href = `${environment.MAIN_PAGE_URL}`;
-  }
-
-  getChatUrl() {
-    // const url = `${URL}podkolpakom_${this.stream}`;
-    const url = environment.CHAT_URL;
-    this.chatUrl = this.sanitizer.bypassSecurityTrustResourceUrl(url);
-  }
-
-  getLoginUrl() {
-    const redirectUri = `${environment.STREAM_PAGE_REDIRECT_URL}/login?token=`;
-
-    this.loginUrl = this.sanitizer.bypassSecurityTrustResourceUrl(
-      `${
-        environment.STATS_URL
-      }/users/auth/google?redirectUri=${encodeURIComponent(redirectUri)}`,
-    );
-  }
-
-  async initPlayer() {
-    console.log(
-      'initPlayer',
-      !!this.stopFnc,
-      this.channel,
-      this.protocol,
-      this.app,
-      this.edgeUrl,
-    );
-
-    if (this.stopFnc) {
-      this.stopFnc();
-
-      this.stopFnc = null;
-    }
-
-    if (this.playerInit) {
-      return;
-    }
-
-    const playerSelector = document.getElementsByClassName('player-section')[0];
-
+  private async initPlayer(edgeUrl: string, protocol: ProtocolsEnum) {
     const videoPlayer = document.createElement('video');
+    this.playerVideo = videoPlayer;
+    const markReady = () => {
+      if (this.playerVideo === videoPlayer) {
+        this.playerState = 'ready';
+      }
+    };
+    const markUnavailable = () => {
+      if (this.playerVideo === videoPlayer) {
+        this.playerState = 'unavailable';
+      }
+    };
+    videoPlayer.addEventListener('loadeddata', markReady);
+    videoPlayer.addEventListener('playing', markReady);
+    videoPlayer.addEventListener('error', markUnavailable);
 
     videoPlayer.setAttribute('id', 'player');
-    videoPlayer.setAttribute('controls', 'true');
+    videoPlayer.controls = true;
+    const savedVolume = Number(localStorage.getItem(VOLUME_STORAGE_KEY));
+    if (savedVolume >= MIN_SAVED_VOLUME && savedVolume <= 1) {
+      videoPlayer.volume = savedVolume;
+    }
+    videoPlayer.addEventListener('volumechange', () => {
+      if (
+        this.playerVideo === videoPlayer &&
+        !videoPlayer.muted &&
+        videoPlayer.volume >= MIN_SAVED_VOLUME
+      ) {
+        localStorage.setItem(VOLUME_STORAGE_KEY, String(videoPlayer.volume));
+      }
+    });
+    videoPlayer.addEventListener(
+      'click',
+      (event) => {
+        if (!videoPlayer.paused && event.detail > 0) {
+          event.preventDefault();
+        }
+      },
+      { capture: true },
+    );
 
-    playerSelector.replaceChildren(videoPlayer);
+    // Firefox handles picture clicks inside its native controls without
+    // dispatching them to the page. Cover the picture while it is playing.
+    const playerSurface = document.createElement('div');
+    playerSurface.className = 'stream-player-surface';
+    videoPlayer.addEventListener('play', () =>
+      playerSurface.classList.add('is-playing'),
+    );
+    videoPlayer.addEventListener('pause', () =>
+      playerSurface.classList.remove('is-playing'),
+    );
+    playerSurface.append(videoPlayer);
+    this.playerContainer.nativeElement.replaceChildren(playerSurface);
 
-    if (this.protocol && this.app && this.edgeUrl) {
-      this.playerInit = true;
-
-      console.log('player loading...', this.channel, this.app, this.protocol);
-
-      this.stopFnc = await createPlayer(this.edgeUrl, videoPlayer);
-
-      console.log('player created');
+    try {
+      const stopPlayer = await createPlayer(
+        edgeUrl,
+        protocol,
+        videoPlayer,
+        markUnavailable,
+      );
+      if (this.playerVideo === videoPlayer) {
+        this.stopPlayer = stopPlayer;
+      } else {
+        stopPlayer();
+      }
+    } catch (error) {
+      markUnavailable();
+      console.error('Could not start stream', error);
     }
   }
 }

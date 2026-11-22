@@ -6,7 +6,6 @@ import { default as config } from '../.env.json';
 
 const environment = {
   production: config.NODE_ENV === 'production',
-  CHAT_URL: config.CHAT_URL,
   STATS_URL: config.STATS_URL,
   CURRENT_PAGE: config.CURRENT_PAGE,
   STREAM_PAGE_REDIRECT_URL: config.STREAM_PAGE_REDIRECT_URL,
