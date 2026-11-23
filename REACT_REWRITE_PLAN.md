@@ -20,7 +20,7 @@ Built and running on the `react-rewrite` branch:
 - **The Exchange**, opened by clicking the pyramid on the room or a stream page: type to filter, arrows move the cord, Enter connects, and an unknown name connects anyway.
 - **The Schedule**, computed from the UTC clock so everyone sees the same thing: a hijack of every television, a voice reading digits, a station card on the hour, and the blue hour between three and four in the morning. `?force=hijack`, `numbers`, `ident` or `deadhour` shows one on demand.
 - A static room for devices without WebGL and for reduced-motion settings (`?static` shows it).
-- Unused assets deleted. Sixteen downloaded images, logged in `ASSETS.md`.
+- Unused assets deleted. Sixteen images downloaded from Wikimedia Commons, in `public/stock`.
 - Unit tests for channel logic and the schedule.
 
 Not built yet:
@@ -142,7 +142,7 @@ Everything else in `src/assets` is deleted.
 
 **New cut-outs to source.** Wishlist, trimmed in Phase 0: a mounted boar head, an owl, a human ear, a hanging traffic light, a ceiling fan, a rotary telephone, a floor lamp with a fringed shade, a reel-to-reel recorder, a shortwave radio with a tuning dial, a transmitter mast, utility poles and wires, a cup of black coffee, a typewriter, an empty armchair, a log, a blue key, venetian-blind shadow masks, velvet and carpet textures.
 
-**Already downloaded** (six photos from Wikimedia Commons, all CC BY 2.0, logged in `ASSETS.md`): two portraits of David Lynch, Kyle MacLachlan and Sheryl Lee at the 1990 Emmys, Twede's Cafe in North Bend, and the road with the town sign view in Snoqualmie. CC BY needs a credit line somewhere on the site.
+**Already downloaded** (six photos from Wikimedia Commons, all CC BY 2.0): two portraits of David Lynch, Kyle MacLachlan and Sheryl Lee at the 1990 Emmys, Twede's Cafe in North Bend, and the road with the town sign view in Snoqualmie. CC BY needs a credit line somewhere on the site.
 
 **Not used:** `left.png` and `right.png`.
 
@@ -151,8 +151,6 @@ Everything else in `src/assets` is deleted.
 - Photographs and cut-outs: Wikimedia Commons (public domain and CC0 only), Smithsonian Open Access, The Met Open Access, Rawpixel's public domain collection, Pexels, Unsplash. Photos that are not already transparent get their backgrounds removed locally.
 - 3D models, textures and lighting: Poly Haven (all CC0), plus CC0 models on Sketchfab.
 - Sound: Freesound, CC0 only.
-
-Every downloaded file is recorded in `ASSETS.md` with its source URL, author and license, and I will list the files for you before fetching them.
 
 ## 3. The rooms
 
@@ -365,7 +363,6 @@ src/
   sound/
   data/          api, useChannelStats, useSavedChannels, formatDuration
 public/assets/   re-encoded clips, models, cut-outs
-ASSETS.md
 ```
 
 ## 7. Budgets and guardrails

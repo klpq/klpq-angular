@@ -20,6 +20,6 @@ Configuration comes from `.env` (see `.env.example`). `CURRENT_PAGE=www` builds 
 - `src/rooms/screening` – the stream page and the video player
 - `src/data` – stats API access, channel logic and its tests
 - `src/design` – Tailwind theme, textures and shared pieces
-- `public/assets`, `public/stock` – media; downloaded files are credited in `ASSETS.md`
+- `public/assets`, `public/stock` – media
 
 The design and the remaining work are described in `REACT_REWRITE_PLAN.md`.
