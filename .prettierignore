@@ -1,3 +1,6 @@
 dist/
 .env.json
-.angular
+.env.example
+yarn.lock
+public/assets/
+public/stock/
