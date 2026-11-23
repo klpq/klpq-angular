@@ -1,0 +1,384 @@
+@import 'tailwindcss';
+@import '@fontsource/jetbrains-mono/400.css';
+@import '@fontsource/jetbrains-mono/700.css';
+
+@theme {
+  --color-lodge: #a30d14;
+  --color-lodge-deep: #4a0509;
+  --color-void: #070506;
+  --color-bone: #e8dfc8;
+  --color-sodium: #f0b040;
+  --color-phosphor: #7dffc0;
+  --color-arc: #5aa8ff;
+  --color-dead: #c0c0c0;
+  --color-deadlink: #0000ee;
+
+  --font-serif: 'Boska', Georgia, serif;
+  --font-card: 'Tanker', Impact, 'Arial Narrow', sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+  --font-dead: 'Times New Roman', Times, serif;
+
+  --ease-push: cubic-bezier(0.16, 1, 0.3, 1);
+
+  --animate-grain: grain 0.6s steps(5) infinite;
+  --animate-flicker: flicker 5s linear infinite;
+  --animate-tear: tear 0.9s steps(6) infinite;
+  --animate-blink: blink 1.1s steps(2) infinite;
+  --animate-sway: sway 9s ease-in-out infinite;
+  --animate-headlights: headlights 27s linear infinite;
+  --animate-smoke: smoke 17s ease-out infinite;
+  --animate-lightsout: lightsout 2.6s linear both;
+  --animate-roll: roll 3.4s linear infinite;
+  --animate-hover: hover 7s ease-in-out infinite;
+  --animate-mirror: mirror 53s steps(1) infinite;
+
+  @keyframes grain {
+    0% {
+      transform: translate(0, 0);
+    }
+    20% {
+      transform: translate(-4%, 3%);
+    }
+    40% {
+      transform: translate(3%, -5%);
+    }
+    60% {
+      transform: translate(-2%, 4%);
+    }
+    80% {
+      transform: translate(5%, 2%);
+    }
+    100% {
+      transform: translate(0, 0);
+    }
+  }
+  @keyframes flicker {
+    0%,
+    41%,
+    43%,
+    71%,
+    100% {
+      opacity: 1;
+    }
+    42% {
+      opacity: 0.55;
+    }
+    72% {
+      opacity: 0.8;
+    }
+    73% {
+      opacity: 0.4;
+    }
+    74% {
+      opacity: 1;
+    }
+  }
+  @keyframes tear {
+    0% {
+      transform: translateX(0);
+    }
+    25% {
+      transform: translateX(-14px);
+    }
+    50% {
+      transform: translateX(22px);
+    }
+    75% {
+      transform: translateX(-6px);
+    }
+    100% {
+      transform: translateX(0);
+    }
+  }
+  @keyframes blink {
+    0% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0;
+    }
+  }
+  @keyframes hover {
+    0%,
+    100% {
+      transform: translateY(0) rotate(-1deg);
+    }
+    50% {
+      transform: translateY(-5px) rotate(1.5deg);
+    }
+  }
+  @keyframes mirror {
+    0%,
+    95% {
+      transform: scaleX(1);
+    }
+    95.01%,
+    100% {
+      transform: scaleX(-1);
+    }
+  }
+  @keyframes headlights {
+    0%,
+    76% {
+      transform: translateX(-140%) skewX(-18deg);
+    }
+    100% {
+      transform: translateX(520%) skewX(-18deg);
+    }
+  }
+  @keyframes smoke {
+    0% {
+      opacity: 0;
+      transform: translate(0, 0) scale(0.6);
+    }
+    18% {
+      opacity: 0.22;
+    }
+    60% {
+      opacity: 0.12;
+      transform: translate(-5vw, -42vh) scale(1.5);
+    }
+    100% {
+      opacity: 0;
+      transform: translate(4vw, -78vh) scale(2.4);
+    }
+  }
+  @keyframes lightsout {
+    0% {
+      filter: brightness(1);
+    }
+    3% {
+      filter: brightness(0.2);
+    }
+    6% {
+      filter: brightness(0.85);
+    }
+    9% {
+      filter: brightness(0.08);
+    }
+    13% {
+      filter: brightness(0.5);
+    }
+    16%,
+    70% {
+      filter: brightness(0.03);
+    }
+    73% {
+      filter: brightness(0.7);
+    }
+    76% {
+      filter: brightness(0.05);
+    }
+    82% {
+      filter: brightness(1.15);
+    }
+    86% {
+      filter: brightness(0.3);
+    }
+    92% {
+      filter: brightness(1.05);
+    }
+    95% {
+      filter: brightness(0.75);
+    }
+    100% {
+      filter: brightness(1);
+    }
+  }
+  @keyframes roll {
+    from {
+      transform: translateY(-20vh);
+    }
+    to {
+      transform: translateY(120vh);
+    }
+  }
+  @keyframes sway {
+    0%,
+    100% {
+      background-position-x: 0;
+    }
+    50% {
+      background-position-x: 9px;
+    }
+  }
+}
+
+:root {
+  --noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  --ink: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.55' numOctaves='3'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 -2.2 1.75'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  overflow: hidden;
+  background: var(--color-void);
+  color: var(--color-bone);
+  font-family: var(--font-serif);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Film layer. Goes on a positioned element; the noise sits above its children. */
+@utility grain {
+  &::after {
+    content: '';
+    position: absolute;
+    inset: -20%;
+    z-index: 40;
+    pointer-events: none;
+    background-image: var(--noise);
+    opacity: 0.16;
+    mix-blend-mode: overlay;
+    animation: var(--animate-grain);
+  }
+}
+
+@utility vignette {
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 39;
+    pointer-events: none;
+    background: radial-gradient(
+      ellipse at center,
+      transparent 45%,
+      rgb(0 0 0 / 0.78) 100%
+    );
+  }
+}
+
+/* Tape layer. Only for things that are CRTs. */
+@utility scanlines {
+  background-image: repeating-linear-gradient(
+    to bottom,
+    rgb(0 0 0 / 0.32) 0 1px,
+    transparent 1px 3px
+  );
+}
+
+@utility halation {
+  text-shadow:
+    0 0 2px currentColor,
+    0 0 14px color-mix(in srgb, currentColor 55%, transparent);
+}
+
+@utility chroma-split {
+  text-shadow:
+    -2px 0 0 rgb(255 30 60 / 0.75),
+    2px 0 0 rgb(60 200 255 / 0.65);
+}
+
+/* Paper layer. */
+@utility stamp {
+  display: inline-block;
+  font-family: var(--font-card);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  line-height: 1;
+  padding: 0.38em 0.6em 0.3em;
+  border: 0.14em solid currentColor;
+  border-radius: 0.12em;
+  -webkit-mask-image: var(--ink);
+  mask-image: var(--ink);
+  mask-size: 260px;
+}
+
+@utility redact {
+  background: var(--color-void);
+  color: transparent;
+  user-select: none;
+  box-shadow: 0 0 0 1px rgb(0 0 0);
+}
+
+@utility caption-box {
+  font-family: var(--font-serif);
+  font-style: italic;
+  color: var(--color-void);
+  background: var(--color-bone);
+  padding: 0.55em 0.9em 0.6em;
+  box-shadow:
+    0.28em 0.28em 0 var(--color-void),
+    0.28em 0.28em 0 1px var(--color-sodium);
+  line-height: 1.25;
+}
+
+@utility dead-web {
+  font-family: var(--font-dead);
+  font-size: 15px;
+  line-height: 1.3;
+  color: #000;
+  background: var(--color-dead);
+  border: 2px outset #fff;
+  padding: 10px 12px;
+  & a,
+  & u {
+    color: var(--color-deadlink);
+    text-decoration: underline;
+  }
+}
+
+/* Curtain folds as a background. */
+@utility curtain {
+  background-color: var(--color-lodge-deep);
+  background-image:
+    linear-gradient(
+      to bottom,
+      rgb(0 0 0 / 0.75),
+      transparent 30%,
+      transparent 75%,
+      rgb(0 0 0 / 0.6)
+    ),
+    repeating-linear-gradient(
+      to right,
+      #1a0103 0px,
+      #7d0a10 14px,
+      #c2141c 22px,
+      #6a070c 31px,
+      #1a0103 44px,
+      #550509 58px,
+      #a30d14 66px,
+      #2a0204 80px
+    );
+}
+
+@custom-variant live (&:where([data-live='true'], [data-live='true'] *));
+
+/* The player element is created by hand in useStreamPlayer, so it is styled globally. */
+#player {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: #000;
+}
+
+.stream-player-surface {
+  display: contents;
+}
+
+/* Firefox desktop needs a separate click target over the picture. The native
+   control bar occupies the bottom 40px of the video. */
+@supports (-moz-appearance: none) {
+  @media (hover: hover) {
+    .stream-player-surface {
+      display: grid;
+      grid-template: minmax(0, 1fr) / minmax(0, 1fr);
+      width: 100%;
+      height: 100%;
+    }
+    .stream-player-surface > #player,
+    .stream-player-surface.is-playing::after {
+      grid-area: 1 / 1;
+    }
+    .stream-player-surface.is-playing::after {
+      content: '';
+      margin-bottom: 40px;
+    }
+  }
+}
